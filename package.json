@@ -1,0 +1,11 @@
+{
+    "name": "com.andreadev3d.ThumbCreator",
+    "displayName": "2D Tilemap Extras",
+    "version": "0.1.0-preview",
+    "unity": "2019.3",
+    "description": "ThumbCreator is a package that contains a free tool for fast prototyping icon for your game.",
+    "keywords": ["3d"],
+    "category": "3D",
+    "dependencies": {
+    }
+}
