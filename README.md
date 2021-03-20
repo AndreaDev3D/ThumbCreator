@@ -1,6 +1,15 @@
 ## Thumb Creator
-![Main](https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/ThumbCreator_v1.0.0.png?raw=true)
-##### Free package for untiy to easy generate png(even with transparent background), gif, turntable video or sprite
-## Select the type(png, sprite, gif, mp4, avi, mov) select the resolution and click "Generate".
-![Img with alpha](https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image1024_alpha.png)
-![Img without alpha](https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image1024.png)
+##### Free package for untiy 2020.2 to easy generate png(even with transparent background), gif, turntable video or sprite :
+<img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/ThumbCreator_v1.2.0.png">
+
+## How to use :
+- Open the "Main" scene and Import your model.
+- Adjust Rotation and Position in the ThumbManager.
+- Select the export file type from the dropdown(png, sprite, gif, mp4, avi, mov).
+- Select the resolution.
+- Click "Generate".
+
+Version v1.2 contain the toon shader.*
+
+<img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image_1024_alpha_2.png" width="512" height="512">
+<img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image_1024_2.png" width="512" height="512">
