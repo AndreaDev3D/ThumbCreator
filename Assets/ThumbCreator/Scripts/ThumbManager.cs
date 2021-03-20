@@ -1,11 +1,8 @@
 ﻿
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -24,6 +21,8 @@ public class ThumbManager : MonoBehaviour
     public int RotationZ;
     [Header("Camera Settings")]
     public bool isCameraOrthographic;
+    public bool isCameraBackgroundTransparent;
+    public Color CameraBackgroundColor;
     [Range(-20, 20)]
     public int CameraX;
     [Range(-20, 20)]
@@ -55,12 +54,13 @@ public class ThumbManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        var objRot = transform.rotation.ToEuler();
+        var objRot = transform.rotation.eulerAngles;
         var newRot = new Vector3(RotationX, RotationY, RotationZ);
         if (objRot != newRot)
             transform.localRotation = Quaternion.Euler(RotationX, RotationY, RotationZ);
 
         var camPos = Camera.main.transform;
+        Camera.main.backgroundColor = new Color(CameraBackgroundColor.r, CameraBackgroundColor.g, CameraBackgroundColor.b, isCameraBackgroundTransparent ? 0.0f : CameraBackgroundColor.a);
         var newPos = new Vector3(CameraX, CameraY, CameraZ);
         if (camPos.position != newPos)
         {
@@ -275,7 +275,11 @@ public class ThumbManager : MonoBehaviour
         var converter = new ProcessStartInfo($"{GetBaseFolderPath}/Plugins/ffmpeg/bin/ffmpeg.exe");
         converter.UseShellExecute = false;
         converter.Arguments = cmdArgument;
-        Process correctionProcess = Process.Start(converter);
+        Process correctionProcess = new Process();
+        correctionProcess.StartInfo = converter;
+        correctionProcess.StartInfo.CreateNoWindow = true;
+        correctionProcess.StartInfo.UseShellExecute = false;
+        correctionProcess.Start();
         while(!correctionProcess.HasExited)
         {
             Console.WriteLine("Excel is busy");
@@ -315,7 +319,8 @@ public enum Resolution
     res512=512,
     res1024=1024,
     res2048=2048,
-    res4096=4096
+    res4096=4096,
+    res8192 = 8192
 }
 
 public enum FileType
