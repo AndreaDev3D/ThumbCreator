@@ -1,5 +1,5 @@
 ## Thumb Creator
-##### Free package for untiy 2020.2 to easy generate png(even with transparent background), gif, turntable video or sprite :
+##### Free tool for untiy 2020.2 to easily generate thumb for Icon and model in inventory, even with transparent background, and not only, you can either create gif, turntable video or sprite :
 <img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/ThumbCreator_v1.2.0.png">
 
 ## How to use :
