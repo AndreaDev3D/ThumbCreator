@@ -1,104 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
   <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>FFmpeg documentation</title>
-    <link rel="stylesheet" href="bootstrap.min.css" />
-    <link rel="stylesheet" href="style.min.css" />
-
-<meta name="description" content="FFmpeg Utilities Documentation: ">
-<meta name="keywords" content="FFmpeg documentation : FFmpeg Utilities ">
-<meta name="Generator" content="texi2html 5.0">
-<!-- Created on April 24, 2020 by texi2html 5.0 -->
-<!--
-texi2html was written by: 
-            Lionel Cons <Lionel.Cons@cern.ch> (original author)
-            Karl Berry  <karl@freefriends.org>
-            Olaf Bachmann <obachman@mathematik.uni-kl.de>
-            and many others.
-Maintained by: Many creative people.
-Send bugs and suggestions to <texi2html-bug@nongnu.org>
-
--->
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8">
+    <title>
+      FFmpeg Utilities Documentation
+    </title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.min.css">
   </head>
   <body>
     <div class="container">
+      <h1>
+      FFmpeg Utilities Documentation
+      </h1>
+<div align="center">
+</div>
 
-<h1 class="titlefont">FFmpeg Utilities Documentation</h1>
-<hr>
+
 <a name="SEC_Top"></a>
 
-<a name="SEC_Contents"></a>
-<h1>Table of Contents</h1>
+<span id="SEC_Contents"></span>
+<h2 class="contents-heading">Table of Contents</h2>
 
 <div class="contents">
 
 <ul class="no-bullet">
-  <li><a name="toc-Description" href="#Description">1 Description</a></li>
-  <li><a name="toc-Syntax" href="#Syntax">2 Syntax</a>
+  <li><a id="toc-Description" href="#Description">1 Description</a></li>
+  <li><a id="toc-Syntax" href="#Syntax">2 Syntax</a>
   <ul class="no-bullet">
-    <li><a name="toc-Quoting-and-escaping" href="#Quoting-and-escaping">2.1 Quoting and escaping</a>
+    <li><a id="toc-Quoting-and-escaping" href="#Quoting-and-escaping">2.1 Quoting and escaping</a>
     <ul class="no-bullet">
-      <li><a name="toc-Examples-1" href="#Examples-1">2.1.1 Examples</a></li>
+      <li><a id="toc-Examples" href="#Examples">2.1.1 Examples</a></li>
     </ul></li>
-    <li><a name="toc-Date" href="#Date">2.2 Date</a></li>
-    <li><a name="toc-Time-duration" href="#Time-duration">2.3 Time duration</a>
+    <li><a id="toc-Date" href="#Date">2.2 Date</a></li>
+    <li><a id="toc-Time-duration" href="#Time-duration">2.3 Time duration</a>
     <ul class="no-bullet">
-      <li><a name="toc-Examples" href="#Examples">2.3.1 Examples</a></li>
+      <li><a id="toc-Examples-1" href="#Examples-1">2.3.1 Examples</a></li>
     </ul></li>
-    <li><a name="toc-Video-size" href="#Video-size">2.4 Video size</a></li>
-    <li><a name="toc-Video-rate" href="#Video-rate">2.5 Video rate</a></li>
-    <li><a name="toc-Ratio" href="#Ratio">2.6 Ratio</a></li>
-    <li><a name="toc-Color" href="#Color">2.7 Color</a></li>
-    <li><a name="toc-Channel-Layout" href="#Channel-Layout">2.8 Channel Layout</a></li>
+    <li><a id="toc-Video-size" href="#Video-size">2.4 Video size</a></li>
+    <li><a id="toc-Video-rate" href="#Video-rate">2.5 Video rate</a></li>
+    <li><a id="toc-Ratio" href="#Ratio">2.6 Ratio</a></li>
+    <li><a id="toc-Color" href="#Color">2.7 Color</a></li>
+    <li><a id="toc-Channel-Layout" href="#Channel-Layout">2.8 Channel Layout</a></li>
   </ul></li>
-  <li><a name="toc-Expression-Evaluation" href="#Expression-Evaluation">3 Expression Evaluation</a></li>
-  <li><a name="toc-See-Also" href="#See-Also">4 See Also</a></li>
-  <li><a name="toc-Authors" href="#Authors">5 Authors</a></li>
+  <li><a id="toc-Expression-Evaluation" href="#Expression-Evaluation">3 Expression Evaluation</a></li>
+  <li><a id="toc-See-Also" href="#See-Also">4 See Also</a></li>
+  <li><a id="toc-Authors" href="#Authors">5 Authors</a></li>
 </ul>
 </div>
 
 
-<hr size="6">
 <a name="Description"></a>
-<h1 class="chapter"><a href="ffmpeg-utils.html#toc-Description">1 Description</a></h1>
+<h2 class="chapter">1 Description<span class="pull-right"><a class="anchor hidden-xs" href="#Description" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Description" aria-hidden="true">TOC</a></span></h2>
 
 <p>This document describes some generic features and utilities provided
 by the libavutil library.
 </p>
 
 <a name="Syntax"></a>
-<h1 class="chapter"><a href="ffmpeg-utils.html#toc-Syntax">2 Syntax</a></h1>
+<h2 class="chapter">2 Syntax<span class="pull-right"><a class="anchor hidden-xs" href="#Syntax" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Syntax" aria-hidden="true">TOC</a></span></h2>
 
 <p>This section documents the syntax and formats employed by the FFmpeg
 libraries and tools.
 </p>
-<p><a name="quoting_005fand_005fescaping"></a>
-</p><a name="Quoting-and-escaping"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Quoting-and-escaping">2.1 Quoting and escaping</a></h2>
+<span id="quoting_005fand_005fescaping"></span><a name="Quoting-and-escaping"></a>
+<h3 class="section">2.1 Quoting and escaping<span class="pull-right"><a class="anchor hidden-xs" href="#Quoting-and-escaping" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Quoting-and-escaping" aria-hidden="true">TOC</a></span></h3>
 
 <p>FFmpeg adopts the following quoting and escaping mechanism, unless
 explicitly specified. The following rules are applied:
 </p>
 <ul>
-<li>
-&lsquo;<samp>'</samp>&rsquo; and &lsquo;<samp>\</samp>&rsquo; are special characters (respectively used for
+<li> &lsquo;<samp>'</samp>&rsquo; and &lsquo;<samp>\</samp>&rsquo; are special characters (respectively used for
 quoting and escaping). In addition to them, there might be other
 special characters depending on the specific syntax where the escaping
 and quoting are employed.
 
-</li><li>
-A special character is escaped by prefixing it with a &lsquo;<samp>\</samp>&rsquo;.
+</li><li> A special character is escaped by prefixing it with a &lsquo;<samp>\</samp>&rsquo;.
 
-</li><li>
-All characters enclosed between &lsquo;<samp>''</samp>&rsquo; are included literally in the
+</li><li> All characters enclosed between &lsquo;<samp>''</samp>&rsquo; are included literally in the
 parsed string. The quote character &lsquo;<samp>'</samp>&rsquo; itself cannot be quoted,
 so you may need to close the quote and escape it.
 
-</li><li>
-Leading and trailing whitespaces, unless escaped or quoted, are
+</li><li> Leading and trailing whitespaces, unless escaped or quoted, are
 removed from the parsed string.
 </li></ul>
 
@@ -107,52 +92,46 @@ the command line or a script, which depends on the syntax of the
 adopted shell language.
 </p>
 <p>The function <code>av_get_token</code> defined in
-&lsquo;<tt>libavutil/avstring.h</tt>&rsquo; can be used to parse a token quoted or
+<samp>libavutil/avstring.h</samp> can be used to parse a token quoted or
 escaped according to the rules defined above.
 </p>
-<p>The tool &lsquo;<tt>tools/ffescape</tt>&rsquo; in the FFmpeg source tree can be used
+<p>The tool <samp>tools/ffescape</samp> in the FFmpeg source tree can be used
 to automatically quote or escape a string in a script.
 </p>
-<a name="Examples-1"></a>
-<h3 class="subsection"><a href="ffmpeg-utils.html#toc-Examples-1">2.1.1 Examples</a></h3>
+<a name="Examples"></a>
+<h4 class="subsection">2.1.1 Examples<span class="pull-right"><a class="anchor hidden-xs" href="#Examples" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Examples" aria-hidden="true">TOC</a></span></h4>
 
 <ul>
-<li>
-Escape the string <code>Crime d'Amour</code> containing the <code>'</code> special
+<li> Escape the string <code>Crime d'Amour</code> containing the <code>'</code> special
 character:
 <div class="example">
 <pre class="example">Crime d\'Amour
 </pre></div>
 
-</li><li>
-The string above contains a quote, so the <code>'</code> needs to be escaped
+</li><li> The string above contains a quote, so the <code>'</code> needs to be escaped
 when quoting it:
 <div class="example">
 <pre class="example">'Crime d'\''Amour'
 </pre></div>
 
-</li><li>
-Include leading or trailing whitespaces using quoting:
+</li><li> Include leading or trailing whitespaces using quoting:
 <div class="example">
 <pre class="example">'  this string starts and ends with whitespaces  '
 </pre></div>
 
-</li><li>
-Escaping and quoting can be mixed together:
+</li><li> Escaping and quoting can be mixed together:
 <div class="example">
 <pre class="example">' The string '\'string\'' is a string '
 </pre></div>
 
-</li><li>
-To include a literal &lsquo;<samp>\</samp>&rsquo; you can use either escaping or quoting:
+</li><li> To include a literal &lsquo;<samp>\</samp>&rsquo; you can use either escaping or quoting:
 <div class="example">
 <pre class="example">'c:\foo' can be written as c:\\foo
 </pre></div>
 </li></ul>
 
-<p><a name="date-syntax"></a>
-</p><a name="Date"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Date">2.2 Date</a></h2>
+<span id="date-syntax"></span><a name="Date"></a>
+<h3 class="section">2.2 Date<span class="pull-right"><a class="anchor hidden-xs" href="#Date" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Date" aria-hidden="true">TOC</a></span></h3>
 
 <p>The accepted syntax is:
 </p><div class="example">
@@ -167,9 +146,8 @@ interpreted as UTC.
 If the year-month-day part is not specified it takes the current
 year-month-day.
 </p>
-<p><a name="time-duration-syntax"></a>
-</p><a name="Time-duration"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Time-duration">2.3 Time duration</a></h2>
+<span id="time-duration-syntax"></span><a name="Time-duration"></a>
+<h3 class="section">2.3 Time duration<span class="pull-right"><a class="anchor hidden-xs" href="#Time-duration" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Time-duration" aria-hidden="true">TOC</a></span></h3>
 
 <p>There are two accepted syntaxes for expressing time duration.
 </p>
@@ -185,22 +163,36 @@ maximum of 2 digits. The <var>m</var> at the end expresses decimal value for
 <p><em>or</em>
 </p>
 <div class="example">
-<pre class="example">[-]<var>S</var>+[.<var>m</var>...]
+<pre class="example">[-]<var>S</var>+[.<var>m</var>...][s|ms|us]
 </pre></div>
 
 <p><var>S</var> expresses the number of seconds, with the optional decimal part
-<var>m</var>.
+<var>m</var>.  The optional literal suffixes &lsquo;<samp>s</samp>&rsquo;, &lsquo;<samp>ms</samp>&rsquo; or &lsquo;<samp>us</samp>&rsquo;
+indicate to interpret the value as seconds, milliseconds or microseconds,
+respectively.
 </p>
 <p>In both expressions, the optional &lsquo;<samp>-</samp>&rsquo; indicates negative duration.
 </p>
-<a name="Examples"></a>
-<h3 class="subsection"><a href="ffmpeg-utils.html#toc-Examples">2.3.1 Examples</a></h3>
+<a name="Examples-1"></a>
+<h4 class="subsection">2.3.1 Examples<span class="pull-right"><a class="anchor hidden-xs" href="#Examples-1" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Examples-1" aria-hidden="true">TOC</a></span></h4>
 
 <p>The following examples are all valid time duration:
 </p>
 <dl compact="compact">
 <dt>&lsquo;<samp>55</samp>&rsquo;</dt>
 <dd><p>55 seconds
+</p>
+</dd>
+<dt>&lsquo;<samp>0.2</samp>&rsquo;</dt>
+<dd><p>0.2 seconds
+</p>
+</dd>
+<dt>&lsquo;<samp>200ms</samp>&rsquo;</dt>
+<dd><p>200 milliseconds, that&rsquo;s 0.2s
+</p>
+</dd>
+<dt>&lsquo;<samp>200000us</samp>&rsquo;</dt>
+<dd><p>200000 microseconds, that&rsquo;s 0.2s
 </p>
 </dd>
 <dt>&lsquo;<samp>12:03:45</samp>&rsquo;</dt>
@@ -212,9 +204,8 @@ maximum of 2 digits. The <var>m</var> at the end expresses decimal value for
 </p></dd>
 </dl>
 
-<p><a name="video-size-syntax"></a>
-</p><a name="Video-size"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Video-size">2.4 Video size</a></h2>
+<span id="video-size-syntax"></span><a name="Video-size"></a>
+<h3 class="section">2.4 Video size<span class="pull-right"><a class="anchor hidden-xs" href="#Video-size" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Video-size" aria-hidden="true">TOC</a></span></h3>
 <p>Specify the size of the sourced video, it may be a string of the form
 <var>width</var>x<var>height</var>, or the name of a size abbreviation.
 </p>
@@ -381,9 +372,8 @@ maximum of 2 digits. The <var>m</var> at the end expresses decimal value for
 </p></dd>
 </dl>
 
-<p><a name="video-rate-syntax"></a>
-</p><a name="Video-rate"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Video-rate">2.5 Video rate</a></h2>
+<span id="video-rate-syntax"></span><a name="Video-rate"></a>
+<h3 class="section">2.5 Video rate<span class="pull-right"><a class="anchor hidden-xs" href="#Video-rate" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Video-rate" aria-hidden="true">TOC</a></span></h3>
 
 <p>Specify the frame rate of a video, expressed as the number of frames
 generated per second. It has to be a string in the format
@@ -418,9 +408,8 @@ number or a valid video frame rate abbreviation.
 </p></dd>
 </dl>
 
-<p><a name="ratio-syntax"></a>
-</p><a name="Ratio"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Ratio">2.6 Ratio</a></h2>
+<span id="ratio-syntax"></span><a name="Ratio"></a>
+<h3 class="section">2.6 Ratio<span class="pull-right"><a class="anchor hidden-xs" href="#Ratio" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Ratio" aria-hidden="true">TOC</a></span></h3>
 
 <p>A ratio can be expressed as an expression, or in the form
 <var>numerator</var>:<var>denominator</var>.
@@ -431,9 +420,8 @@ want to exclude those values.
 </p>
 <p>The undefined value can be expressed using the &quot;0:0&quot; string.
 </p>
-<p><a name="color-syntax"></a>
-</p><a name="Color"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Color">2.7 Color</a></h2>
+<span id="color-syntax"></span><a name="Color"></a>
+<h3 class="section">2.7 Color<span class="pull-right"><a class="anchor hidden-xs" href="#Color" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Color" aria-hidden="true">TOC</a></span></h3>
 
 <p>It can be the name of a color as defined below (case insensitive match) or a
 <code>[0x|#]RRGGBB[AA]</code> sequence, possibly followed by @ and a string
@@ -871,9 +859,8 @@ component is not specified then &lsquo;<samp>0xff</samp>&rsquo; is assumed.
 </p></dd>
 </dl>
 
-<p><a name="channel-layout-syntax"></a>
-</p><a name="Channel-Layout"></a>
-<h2 class="section"><a href="ffmpeg-utils.html#toc-Channel-Layout">2.8 Channel Layout</a></h2>
+<span id="channel-layout-syntax"></span><a name="Channel-Layout"></a>
+<h3 class="section">2.8 Channel Layout<span class="pull-right"><a class="anchor hidden-xs" href="#Channel-Layout" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Channel-Layout" aria-hidden="true">TOC</a></span></h3>
 
 <p>A channel layout specifies the spatial disposition of the channels in
 a multi-channel audio stream. To specify a channel layout, FFmpeg
@@ -1051,27 +1038,22 @@ following identifiers:
 <p>A custom channel layout can be specified as a sequence of terms, separated by
 &rsquo;+&rsquo; or &rsquo;|&rsquo;. Each term can be:
 </p><ul>
-<li>
-the name of a standard channel layout (e.g. &lsquo;<samp>mono</samp>&rsquo;,
+<li> the name of a standard channel layout (e.g. &lsquo;<samp>mono</samp>&rsquo;,
 &lsquo;<samp>stereo</samp>&rsquo;, &lsquo;<samp>4.0</samp>&rsquo;, &lsquo;<samp>quad</samp>&rsquo;, &lsquo;<samp>5.0</samp>&rsquo;, etc.)
 
-</li><li>
-the name of a single channel (e.g. &lsquo;<samp>FL</samp>&rsquo;, &lsquo;<samp>FR</samp>&rsquo;, &lsquo;<samp>FC</samp>&rsquo;, &lsquo;<samp>LFE</samp>&rsquo;, etc.)
+</li><li> the name of a single channel (e.g. &lsquo;<samp>FL</samp>&rsquo;, &lsquo;<samp>FR</samp>&rsquo;, &lsquo;<samp>FC</samp>&rsquo;, &lsquo;<samp>LFE</samp>&rsquo;, etc.)
 
-</li><li>
-a number of channels, in decimal, followed by &rsquo;c&rsquo;, yielding the default channel
+</li><li> a number of channels, in decimal, followed by &rsquo;c&rsquo;, yielding the default channel
 layout for that number of channels (see the function
 <code>av_get_default_channel_layout</code>). Note that not all channel counts have a
 default layout.
 
-</li><li>
-a number of channels, in decimal, followed by &rsquo;C&rsquo;, yielding an unknown channel
+</li><li> a number of channels, in decimal, followed by &rsquo;C&rsquo;, yielding an unknown channel
 layout with the specified number of channels. Note that not all channel layout
 specification strings support unknown channel layouts.
 
-</li><li>
-a channel layout mask, in hexadecimal starting with &quot;0x&quot; (see the
-<code>AV_CH_*</code> macros in &lsquo;<tt>libavutil/channel_layout.h</tt>&rsquo;.
+</li><li> a channel layout mask, in hexadecimal starting with &quot;0x&quot; (see the
+<code>AV_CH_*</code> macros in <samp>libavutil/channel_layout.h</samp>.
 </li></ul>
 
 <p>Before libavutil version 53 the trailing character &quot;c&quot; to specify a number of
@@ -1079,13 +1061,13 @@ channels was optional, but now it is required, while a channel layout mask can
 also be specified as a decimal number (if and only if not followed by &quot;c&quot; or &quot;C&quot;).
 </p>
 <p>See also the function <code>av_get_channel_layout</code> defined in
-&lsquo;<tt>libavutil/channel_layout.h</tt>&rsquo;.
+<samp>libavutil/channel_layout.h</samp>.
 </p>
 <a name="Expression-Evaluation"></a>
-<h1 class="chapter"><a href="ffmpeg-utils.html#toc-Expression-Evaluation">3 Expression Evaluation</a></h1>
+<h2 class="chapter">3 Expression Evaluation<span class="pull-right"><a class="anchor hidden-xs" href="#Expression-Evaluation" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Expression-Evaluation" aria-hidden="true">TOC</a></span></h2>
 
 <p>When evaluating an arithmetic expression, FFmpeg uses an internal
-formula evaluator, implemented through the &lsquo;<tt>libavutil/eval.h</tt>&rsquo;
+formula evaluator, implemented through the <samp>libavutil/eval.h</samp>
 interface.
 </p>
 <p>An expression may contain unary, binary operators, constants, and
@@ -1103,33 +1085,33 @@ expression evaluates to the value of <var>expr2</var>.
 </p>
 <p>The following functions are available:
 </p><dl compact="compact">
-<dt>&lsquo;<samp>abs(x)</samp>&rsquo;</dt>
+<dt><samp>abs(x)</samp></dt>
 <dd><p>Compute absolute value of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>acos(x)</samp>&rsquo;</dt>
+<dt><samp>acos(x)</samp></dt>
 <dd><p>Compute arccosine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>asin(x)</samp>&rsquo;</dt>
+<dt><samp>asin(x)</samp></dt>
 <dd><p>Compute arcsine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>atan(x)</samp>&rsquo;</dt>
+<dt><samp>atan(x)</samp></dt>
 <dd><p>Compute arctangent of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>atan2(x, y)</samp>&rsquo;</dt>
+<dt><samp>atan2(x, y)</samp></dt>
 <dd><p>Compute principal value of the arc tangent of <var>y</var>/<var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>between(x, min, max)</samp>&rsquo;</dt>
+<dt><samp>between(x, min, max)</samp></dt>
 <dd><p>Return 1 if <var>x</var> is greater than or equal to <var>min</var> and lesser than or
 equal to <var>max</var>, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>bitand(x, y)</samp>&rsquo;</dt>
-<dt>&lsquo;<samp>bitor(x, y)</samp>&rsquo;</dt>
+<dt><samp>bitand(x, y)</samp></dt>
+<dt><samp>bitor(x, y)</samp></dt>
 <dd><p>Compute bitwise and/or operation on <var>x</var> and <var>y</var>.
 </p>
 <p>The results of the evaluation of <var>x</var> and <var>y</var> are converted to
@@ -1140,134 +1122,134 @@ floating point can lose precision. Beware of unexpected results for
 large numbers (usually 2^53 and larger).
 </p>
 </dd>
-<dt>&lsquo;<samp>ceil(expr)</samp>&rsquo;</dt>
+<dt><samp>ceil(expr)</samp></dt>
 <dd><p>Round the value of expression <var>expr</var> upwards to the nearest
 integer. For example, &quot;ceil(1.5)&quot; is &quot;2.0&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>clip(x, min, max)</samp>&rsquo;</dt>
+<dt><samp>clip(x, min, max)</samp></dt>
 <dd><p>Return the value of <var>x</var> clipped between <var>min</var> and <var>max</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>cos(x)</samp>&rsquo;</dt>
+<dt><samp>cos(x)</samp></dt>
 <dd><p>Compute cosine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>cosh(x)</samp>&rsquo;</dt>
+<dt><samp>cosh(x)</samp></dt>
 <dd><p>Compute hyperbolic cosine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>eq(x, y)</samp>&rsquo;</dt>
+<dt><samp>eq(x, y)</samp></dt>
 <dd><p>Return 1 if <var>x</var> and <var>y</var> are equivalent, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>exp(x)</samp>&rsquo;</dt>
+<dt><samp>exp(x)</samp></dt>
 <dd><p>Compute exponential of <var>x</var> (with base <code>e</code>, the Euler&rsquo;s number).
 </p>
 </dd>
-<dt>&lsquo;<samp>floor(expr)</samp>&rsquo;</dt>
+<dt><samp>floor(expr)</samp></dt>
 <dd><p>Round the value of expression <var>expr</var> downwards to the nearest
 integer. For example, &quot;floor(-1.5)&quot; is &quot;-2.0&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>gauss(x)</samp>&rsquo;</dt>
+<dt><samp>gauss(x)</samp></dt>
 <dd><p>Compute Gauss function of <var>x</var>, corresponding to
 <code>exp(-x*x/2) / sqrt(2*PI)</code>.
 </p>
 </dd>
-<dt>&lsquo;<samp>gcd(x, y)</samp>&rsquo;</dt>
+<dt><samp>gcd(x, y)</samp></dt>
 <dd><p>Return the greatest common divisor of <var>x</var> and <var>y</var>. If both <var>x</var> and
 <var>y</var> are 0 or either or both are less than zero then behavior is undefined.
 </p>
 </dd>
-<dt>&lsquo;<samp>gt(x, y)</samp>&rsquo;</dt>
+<dt><samp>gt(x, y)</samp></dt>
 <dd><p>Return 1 if <var>x</var> is greater than <var>y</var>, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>gte(x, y)</samp>&rsquo;</dt>
+<dt><samp>gte(x, y)</samp></dt>
 <dd><p>Return 1 if <var>x</var> is greater than or equal to <var>y</var>, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>hypot(x, y)</samp>&rsquo;</dt>
+<dt><samp>hypot(x, y)</samp></dt>
 <dd><p>This function is similar to the C function with the same name; it returns
 &quot;sqrt(<var>x</var>*<var>x</var> + <var>y</var>*<var>y</var>)&quot;, the length of the hypotenuse of a
 right triangle with sides of length <var>x</var> and <var>y</var>, or the distance of the
 point (<var>x</var>, <var>y</var>) from the origin.
 </p>
 </dd>
-<dt>&lsquo;<samp>if(x, y)</samp>&rsquo;</dt>
+<dt><samp>if(x, y)</samp></dt>
 <dd><p>Evaluate <var>x</var>, and if the result is non-zero return the result of
 the evaluation of <var>y</var>, return 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>if(x, y, z)</samp>&rsquo;</dt>
+<dt><samp>if(x, y, z)</samp></dt>
 <dd><p>Evaluate <var>x</var>, and if the result is non-zero return the evaluation
 result of <var>y</var>, otherwise the evaluation result of <var>z</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>ifnot(x, y)</samp>&rsquo;</dt>
+<dt><samp>ifnot(x, y)</samp></dt>
 <dd><p>Evaluate <var>x</var>, and if the result is zero return the result of the
 evaluation of <var>y</var>, return 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>ifnot(x, y, z)</samp>&rsquo;</dt>
+<dt><samp>ifnot(x, y, z)</samp></dt>
 <dd><p>Evaluate <var>x</var>, and if the result is zero return the evaluation
 result of <var>y</var>, otherwise the evaluation result of <var>z</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>isinf(x)</samp>&rsquo;</dt>
+<dt><samp>isinf(x)</samp></dt>
 <dd><p>Return 1.0 if <var>x</var> is +/-INFINITY, 0.0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>isnan(x)</samp>&rsquo;</dt>
+<dt><samp>isnan(x)</samp></dt>
 <dd><p>Return 1.0 if <var>x</var> is NAN, 0.0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>ld(var)</samp>&rsquo;</dt>
+<dt><samp>ld(var)</samp></dt>
 <dd><p>Load the value of the internal variable with number
 <var>var</var>, which was previously stored with st(<var>var</var>, <var>expr</var>).
 The function returns the loaded value.
 </p>
 </dd>
-<dt>&lsquo;<samp>lerp(x, y, z)</samp>&rsquo;</dt>
+<dt><samp>lerp(x, y, z)</samp></dt>
 <dd><p>Return linear interpolation between <var>x</var> and <var>y</var> by amount of <var>z</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>log(x)</samp>&rsquo;</dt>
+<dt><samp>log(x)</samp></dt>
 <dd><p>Compute natural logarithm of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>lt(x, y)</samp>&rsquo;</dt>
+<dt><samp>lt(x, y)</samp></dt>
 <dd><p>Return 1 if <var>x</var> is lesser than <var>y</var>, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>lte(x, y)</samp>&rsquo;</dt>
+<dt><samp>lte(x, y)</samp></dt>
 <dd><p>Return 1 if <var>x</var> is lesser than or equal to <var>y</var>, 0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>max(x, y)</samp>&rsquo;</dt>
+<dt><samp>max(x, y)</samp></dt>
 <dd><p>Return the maximum between <var>x</var> and <var>y</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>min(x, y)</samp>&rsquo;</dt>
+<dt><samp>min(x, y)</samp></dt>
 <dd><p>Return the minimum between <var>x</var> and <var>y</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>mod(x, y)</samp>&rsquo;</dt>
+<dt><samp>mod(x, y)</samp></dt>
 <dd><p>Compute the remainder of division of <var>x</var> by <var>y</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>not(expr)</samp>&rsquo;</dt>
+<dt><samp>not(expr)</samp></dt>
 <dd><p>Return 1.0 if <var>expr</var> is zero, 0.0 otherwise.
 </p>
 </dd>
-<dt>&lsquo;<samp>pow(x, y)</samp>&rsquo;</dt>
+<dt><samp>pow(x, y)</samp></dt>
 <dd><p>Compute the power of <var>x</var> elevated <var>y</var>, it is equivalent to
 &quot;(<var>x</var>)^(<var>y</var>)&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>print(t)</samp>&rsquo;</dt>
-<dt>&lsquo;<samp>print(t, l)</samp>&rsquo;</dt>
+<dt><samp>print(t)</samp></dt>
+<dt><samp>print(t, l)</samp></dt>
 <dd><p>Print the value of expression <var>t</var> with loglevel <var>l</var>. If
 <var>l</var> is not specified then a default log level is used.
 Returns the value of the expression printed.
@@ -1275,12 +1257,12 @@ Returns the value of the expression printed.
 <p>Prints t with loglevel l
 </p>
 </dd>
-<dt>&lsquo;<samp>random(x)</samp>&rsquo;</dt>
+<dt><samp>random(x)</samp></dt>
 <dd><p>Return a pseudo random value between 0.0 and 1.0. <var>x</var> is the index of the
 internal variable which will be used to save the seed/state.
 </p>
 </dd>
-<dt>&lsquo;<samp>root(expr, max)</samp>&rsquo;</dt>
+<dt><samp>root(expr, max)</samp></dt>
 <dd><p>Find an input value for which the function represented by <var>expr</var>
 with argument <var>ld(0)</var> is 0 in the interval 0..<var>max</var>.
 </p>
@@ -1294,32 +1276,32 @@ various input values that the expression can access through
 corresponding input value will be returned.
 </p>
 </dd>
-<dt>&lsquo;<samp>round(expr)</samp>&rsquo;</dt>
+<dt><samp>round(expr)</samp></dt>
 <dd><p>Round the value of expression <var>expr</var> to the nearest integer. For example, &quot;round(1.5)&quot; is &quot;2.0&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>sgn(x)</samp>&rsquo;</dt>
+<dt><samp>sgn(x)</samp></dt>
 <dd><p>Compute sign of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>sin(x)</samp>&rsquo;</dt>
+<dt><samp>sin(x)</samp></dt>
 <dd><p>Compute sine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>sinh(x)</samp>&rsquo;</dt>
+<dt><samp>sinh(x)</samp></dt>
 <dd><p>Compute hyperbolic sine of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>sqrt(expr)</samp>&rsquo;</dt>
+<dt><samp>sqrt(expr)</samp></dt>
 <dd><p>Compute the square root of <var>expr</var>. This is equivalent to
 &quot;(<var>expr</var>)^.5&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>squish(x)</samp>&rsquo;</dt>
+<dt><samp>squish(x)</samp></dt>
 <dd><p>Compute expression <code>1/(1 + exp(4*x))</code>.
 </p>
 </dd>
-<dt>&lsquo;<samp>st(var, expr)</samp>&rsquo;</dt>
+<dt><samp>st(var, expr)</samp></dt>
 <dd><p>Store the value of the expression <var>expr</var> in an internal
 variable. <var>var</var> specifies the number of the variable where to
 store the value, and it is a value ranging from 0 to 9. The function
@@ -1327,16 +1309,16 @@ returns the value stored in the internal variable.
 Note, Variables are currently not shared between expressions.
 </p>
 </dd>
-<dt>&lsquo;<samp>tan(x)</samp>&rsquo;</dt>
+<dt><samp>tan(x)</samp></dt>
 <dd><p>Compute tangent of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>tanh(x)</samp>&rsquo;</dt>
+<dt><samp>tanh(x)</samp></dt>
 <dd><p>Compute hyperbolic tangent of <var>x</var>.
 </p>
 </dd>
-<dt>&lsquo;<samp>taylor(expr, x)</samp>&rsquo;</dt>
-<dt>&lsquo;<samp>taylor(expr, x, id)</samp>&rsquo;</dt>
+<dt><samp>taylor(expr, x)</samp></dt>
+<dt><samp>taylor(expr, x, id)</samp></dt>
 <dd><p>Evaluate a Taylor series at <var>x</var>, given an expression representing
 the <code>ld(id)</code>-th derivative of a function at 0.
 </p>
@@ -1351,16 +1333,16 @@ with various input values that the expression can access through
 <code>taylor(expr, x-y)</code> can be used.
 </p>
 </dd>
-<dt>&lsquo;<samp>time(0)</samp>&rsquo;</dt>
+<dt><samp>time(0)</samp></dt>
 <dd><p>Return the current (wallclock) time in seconds.
 </p>
 </dd>
-<dt>&lsquo;<samp>trunc(expr)</samp>&rsquo;</dt>
+<dt><samp>trunc(expr)</samp></dt>
 <dd><p>Round the value of expression <var>expr</var> towards zero to the nearest
 integer. For example, &quot;trunc(-1.5)&quot; is &quot;-1.0&quot;.
 </p>
 </dd>
-<dt>&lsquo;<samp>while(cond, expr)</samp>&rsquo;</dt>
+<dt><samp>while(cond, expr)</samp></dt>
 <dd><p>Evaluate expression <var>expr</var> while the expression <var>cond</var> is
 non-zero, and returns the value of the last <var>expr</var> evaluation, or
 NAN if <var>cond</var> was always false.
@@ -1369,13 +1351,13 @@ NAN if <var>cond</var> was always false.
 
 <p>The following constants are available:
 </p><dl compact="compact">
-<dt>&lsquo;<samp>PI</samp>&rsquo;</dt>
+<dt><samp>PI</samp></dt>
 <dd><p>area of the unit disc, approximately 3.14
 </p></dd>
-<dt>&lsquo;<samp>E</samp>&rsquo;</dt>
+<dt><samp>E</samp></dt>
 <dd><p>exp(1) (Euler&rsquo;s number), approximately 2.718
 </p></dd>
-<dt>&lsquo;<samp>PHI</samp>&rsquo;</dt>
+<dt><samp>PHI</samp></dt>
 <dd><p>golden ratio (1+sqrt(5))/2, approximately 1.618
 </p></dd>
 </dl>
@@ -1410,78 +1392,78 @@ unit prefix or used alone. This allows using for example &rsquo;KB&rsquo;, &rsqu
 <p>The list of available International System prefixes follows, with
 indication of the corresponding powers of 10 and of 2.
 </p><dl compact="compact">
-<dt>&lsquo;<samp>y</samp>&rsquo;</dt>
+<dt><samp>y</samp></dt>
 <dd><p>10^-24 / 2^-80
 </p></dd>
-<dt>&lsquo;<samp>z</samp>&rsquo;</dt>
+<dt><samp>z</samp></dt>
 <dd><p>10^-21 / 2^-70
 </p></dd>
-<dt>&lsquo;<samp>a</samp>&rsquo;</dt>
+<dt><samp>a</samp></dt>
 <dd><p>10^-18 / 2^-60
 </p></dd>
-<dt>&lsquo;<samp>f</samp>&rsquo;</dt>
+<dt><samp>f</samp></dt>
 <dd><p>10^-15 / 2^-50
 </p></dd>
-<dt>&lsquo;<samp>p</samp>&rsquo;</dt>
+<dt><samp>p</samp></dt>
 <dd><p>10^-12 / 2^-40
 </p></dd>
-<dt>&lsquo;<samp>n</samp>&rsquo;</dt>
+<dt><samp>n</samp></dt>
 <dd><p>10^-9 / 2^-30
 </p></dd>
-<dt>&lsquo;<samp>u</samp>&rsquo;</dt>
+<dt><samp>u</samp></dt>
 <dd><p>10^-6 / 2^-20
 </p></dd>
-<dt>&lsquo;<samp>m</samp>&rsquo;</dt>
+<dt><samp>m</samp></dt>
 <dd><p>10^-3 / 2^-10
 </p></dd>
-<dt>&lsquo;<samp>c</samp>&rsquo;</dt>
+<dt><samp>c</samp></dt>
 <dd><p>10^-2
 </p></dd>
-<dt>&lsquo;<samp>d</samp>&rsquo;</dt>
+<dt><samp>d</samp></dt>
 <dd><p>10^-1
 </p></dd>
-<dt>&lsquo;<samp>h</samp>&rsquo;</dt>
+<dt><samp>h</samp></dt>
 <dd><p>10^2
 </p></dd>
-<dt>&lsquo;<samp>k</samp>&rsquo;</dt>
+<dt><samp>k</samp></dt>
 <dd><p>10^3 / 2^10
 </p></dd>
-<dt>&lsquo;<samp>K</samp>&rsquo;</dt>
+<dt><samp>K</samp></dt>
 <dd><p>10^3 / 2^10
 </p></dd>
-<dt>&lsquo;<samp>M</samp>&rsquo;</dt>
+<dt><samp>M</samp></dt>
 <dd><p>10^6 / 2^20
 </p></dd>
-<dt>&lsquo;<samp>G</samp>&rsquo;</dt>
+<dt><samp>G</samp></dt>
 <dd><p>10^9 / 2^30
 </p></dd>
-<dt>&lsquo;<samp>T</samp>&rsquo;</dt>
+<dt><samp>T</samp></dt>
 <dd><p>10^12 / 2^40
 </p></dd>
-<dt>&lsquo;<samp>P</samp>&rsquo;</dt>
+<dt><samp>P</samp></dt>
 <dd><p>10^15 / 2^40
 </p></dd>
-<dt>&lsquo;<samp>E</samp>&rsquo;</dt>
+<dt><samp>E</samp></dt>
 <dd><p>10^18 / 2^50
 </p></dd>
-<dt>&lsquo;<samp>Z</samp>&rsquo;</dt>
+<dt><samp>Z</samp></dt>
 <dd><p>10^21 / 2^60
 </p></dd>
-<dt>&lsquo;<samp>Y</samp>&rsquo;</dt>
+<dt><samp>Y</samp></dt>
 <dd><p>10^24 / 2^70
 </p></dd>
 </dl>
 
 
 <a name="See-Also"></a>
-<h1 class="chapter"><a href="ffmpeg-utils.html#toc-See-Also">4 See Also</a></h1>
+<h2 class="chapter">4 See Also<span class="pull-right"><a class="anchor hidden-xs" href="#See-Also" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-See-Also" aria-hidden="true">TOC</a></span></h2>
 
 <p><a href="ffmpeg.html">ffmpeg</a>, <a href="ffplay.html">ffplay</a>, <a href="ffprobe.html">ffprobe</a>,
 <a href="libavutil.html">libavutil</a>
 </p>
 
 <a name="Authors"></a>
-<h1 class="chapter"><a href="ffmpeg-utils.html#toc-Authors">5 Authors</a></h1>
+<h2 class="chapter">5 Authors<span class="pull-right"><a class="anchor hidden-xs" href="#Authors" aria-hidden="true">#</a> <a class="anchor hidden-xs"href="#toc-Authors" aria-hidden="true">TOC</a></span></h2>
 
 <p>The FFmpeg developers.
 </p>
@@ -1491,10 +1473,13 @@ indication of the corresponding powers of 10 and of 2.
 online repository at <a href="http://source.ffmpeg.org">http://source.ffmpeg.org</a>.
 </p>
 <p>Maintainers for the specific components are listed in the file
-&lsquo;<tt>MAINTAINERS</tt>&rsquo; in the source code tree.
+<samp>MAINTAINERS</samp> in the source code tree.
 </p>
 
+
+      <p style="font-size: small;">
+        This document was generated using <a href="http://www.gnu.org/software/texinfo/"><em>makeinfo</em></a>.
+      </p>
     </div>
   </body>
 </html>
-

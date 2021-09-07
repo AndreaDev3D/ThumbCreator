@@ -28,30 +28,22 @@ public class ThumbManager : MonoBehaviour
     [Range(-20, 20)]
     public int CameraY;
     [Range(0, -100)]
-    public int CameraZ=-8;
+    public int CameraZ = -8;
     [Header("Export Settings")]
-    public string FileName="Image";
+    public string FileName = "Image";
     public FileType ExportFile = FileType.Png;
     public Resolution ResolutionWidth = Resolution.res128;
     public Resolution ResolutionHeight = Resolution.res128;
     [Header("GIF Settings")]
-    [Range(8, 360)]
+    [Range(4, 360)]
     public int FrameResolution = 16;
-    public float FrameDuration = 1;
+    public int FrameRate = 1;
 
-    // Assets/ThumbCreator
-    public static string GetBaseFolderPath => $"{Application.dataPath}/ThumbCreator";
-    public static string GetTempFolderPath => $"{GetBaseFolderPath}/_temp";
-    //public static string GetPngTempFileName(int width, int height, int frameId) => $"{GetBaseFolderPath}/temp/screen_{frameId}_{width}x{height}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
-    //public static string GetPngFileName(int width, int height) => $"{GetBaseFolderPath}/_Screenshot/screen_{width}x{height}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
-    //public static string GetSpriteFileName(string name, int spriteCount, int width, int height) => $"{GetBaseFolderPath}/_Sprite/{name}_{spriteCount}_{width}x{height}.png";//_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
-    //public static string GetGifFileName(string name, int width, int height, int frameResolution) => $"{GetBaseFolderPath}/_Gif/gif_{width}x{height}_{frameResolution}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.gif";
-    //public static string GetMp4FileName(string name, int width, int height) => $"{GetBaseFolderPath}/_Video/video_{width}x{height}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.mp4";
+    public string GetBaseFolderPath => $"{Application.dataPath}/ThumbCreator";
+    public string GetTempFolderPath => $"{GetBaseFolderPath}/_temp";
+    public string GetTempFileName(int width, int height, int frameId) => $"{GetBaseFolderPath}/_temp/pic{frameId}.png";//{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
+    public string GetFileName(string name, string folder, string extention, int width, int height) => $"{GetBaseFolderPath}/{folder}/{name}_{width}x{height}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.{extention}";
 
-    public static string GetTempFileName(int width, int height, int frameId) => $"{GetBaseFolderPath}/_temp/pic{frameId}.png";//{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
-    public static string GetFileName(string name, string folder, string extention, int width, int height) => $"{GetBaseFolderPath}/{folder}/{name}_{width}x{height}_{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.{extention}";
-
-    // Update is called once per frame
     void Update()
     {
         var objRot = transform.rotation.eulerAngles;
@@ -73,6 +65,12 @@ public class ThumbManager : MonoBehaviour
 
     public void Take()
     {
+        RotateItem();
+        GenerateFile();
+    }
+
+    public void RotateItem()
+    {
         if (ExportFile != FileType.Png)
         {
             var frameCount = 360 / (int)FrameResolution;
@@ -84,9 +82,13 @@ public class ThumbManager : MonoBehaviour
                 count++;
             }
         }
+    }
+    public void GenerateFile()
+    {
         switch (ExportFile)
         {
             case FileType.Png:
+                GeneratePng1();
                 GeneratePng();
                 break;
             case FileType.Sprite:
@@ -107,7 +109,9 @@ public class ThumbManager : MonoBehaviour
             default:
                 break;
         }
+#if UNITY_EDITOR
         AssetDatabase.Refresh();
+#endif
     }
 
     public void GeneratePng(bool isPng = true, int i = 0)
@@ -115,27 +119,68 @@ public class ThumbManager : MonoBehaviour
         try
         {
             var camera = Camera.main;
-            string filename = isPng ? GetFileName(FileName, "_Png", "png",(int)ResolutionWidth, (int)ResolutionHeight) : GetTempFileName((int)ResolutionWidth, (int)ResolutionHeight, i);
-            //Debug.Log($"Getting screenshot at {ResolutionWidth}x{ResolutionHeight}");
-            
+            string filename = isPng ? GetFileName(FileName, "_Png", "png", (int)ResolutionWidth, (int)ResolutionHeight) : GetTempFileName((int)ResolutionWidth, (int)ResolutionHeight, i);
+
             var renderTexture = new RenderTexture((int)ResolutionWidth, (int)ResolutionHeight, 24);
             camera.targetTexture = renderTexture;
             var screenShot = new Texture2D((int)ResolutionWidth, (int)ResolutionHeight, TextureFormat.ARGB32, false);
-            screenShot.alphaIsTransparency = true;
+#if UNITY_EDITOR
+            screenShot.alphaIsTransparency = isCameraBackgroundTransparent;
+#endif
+            screenShot.Apply();
             camera.Render();
             RenderTexture.active = renderTexture;
             screenShot.ReadPixels(new Rect(0, 0, (int)ResolutionWidth, (int)ResolutionHeight), 0, 0);
             camera.targetTexture = null;
-            RenderTexture.active = null; // JC: added to avoid errors
+            RenderTexture.active = null;
             DestroyImmediate(renderTexture);
             byte[] bytes = screenShot.EncodeToPNG();
-            System.IO.File.WriteAllBytes(filename, bytes);
-            //Debug.Log(string.Format("Took screenshot to: {0}", filename));
+            File.WriteAllBytes(filename, bytes);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Debug.LogError($"{ex}");
         }
+    }
+    public void GeneratePng1(bool isPng = true, int i = 0)
+    {
+        int width = (int)ResolutionWidth;
+        int height = (int)ResolutionHeight;
+        var cam = Camera.main;
+        string filename = isPng ? GetFileName(FileName, "_Png", "png", (int)ResolutionWidth, (int)ResolutionHeight) : GetTempFileName((int)ResolutionWidth, (int)ResolutionHeight, i);
+
+        // Depending on your render pipeline, this may not work.
+        var bak_cam_targetTexture = cam.targetTexture;
+        var bak_cam_clearFlags = cam.clearFlags;
+        var bak_RenderTexture_active = RenderTexture.active;
+
+        var tex_transparent = new Texture2D(width, height, TextureFormat.ARGB32, false);
+        // Must use 24-bit depth buffer to be able to fill background.
+        var render_texture = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
+        var grab_area = new Rect(0, 0, width, height);
+
+        RenderTexture.active = render_texture;
+        cam.targetTexture = render_texture;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+
+        // Simple: use a clear background
+        cam.backgroundColor = Color.clear;
+        cam.Render();
+        tex_transparent.ReadPixels(grab_area, 0, 0);
+#if UNITY_EDITOR
+        tex_transparent.alphaIsTransparency = true;
+        tex_transparent.Apply();
+        AssetDatabase.Refresh();
+#endif
+        // Encode the resulting output texture to a byte array then write to the file
+        byte[] pngShot = ImageConversion.EncodeToPNG(tex_transparent);
+        File.WriteAllBytes(filename, pngShot);
+
+        cam.clearFlags = bak_cam_clearFlags;
+        cam.targetTexture = bak_cam_targetTexture;
+        RenderTexture.active = bak_RenderTexture_active;
+        RenderTexture.ReleaseTemporary(render_texture);
+        Texture2D.DestroyImmediate(tex_transparent);
     }
 
     private void GenerateSprite()
@@ -144,37 +189,14 @@ public class ThumbManager : MonoBehaviour
         var filename = GetFileName(FileName, "_Sprite", "png", (int)ResolutionHeight, (int)ResolutionHeight);
         var fileList = Directory.GetFiles(picturesFolder, "*.png").ToList();
 
-        //List<Bitmap> imageList = new List<Bitmap>();
-        //fileList.ForEach(file => imageList.Add(new Bitmap(Image.FromFile(file)) ));// new Bitmap(Image.FromFile(fileList[0]));
-
         var isGridEven = fileList.Count() % 2 == 0 ? 4 : 3;
         var gridWidth = isGridEven;
         var gridHeight = Math.Ceiling((decimal)fileList.Count() / gridWidth);
-        //var filename = GetFileName(FileName, "_Sprite", "png", (int)ResolutionWidth, (int)ResolutionHeight);
-
-        //var target = new Bitmap((int)ResolutionWidth * gridWidth, (int)ResolutionHeight * (int)gridHeight, PixelFormat.Format32bppArgb);
-        //var graphics = System.Drawing.Graphics.FromImage(target);
-        //graphics.CompositingMode = CompositingMode.SourceOver; // this is the default, but just to be clear
-
-        //var row = -1;
-        //var col = 0;
-        //for (int i = 0; i < imageList.Count; i++)
-        //{
-        //    row = i % isGridEven == 0 ? row + 1 : row;
-        //    col = i % isGridEven;
-        //    //Debug.Log($"i : {i}({col}-{row})");
-        //    graphics.DrawImage(imageList[i], col * (int)ResolutionWidth, row * (int)ResolutionHeight, (int)ResolutionWidth, (int)ResolutionHeight);
-        //}
-
-        //target.Save(filename, ImageFormat.Png);
 
         //$ ffmpeg -i %03d.png -filter_complex scale=120:-1,tile=5x1 output.png
         var cmdList = new Dictionary<string, string>();
-        //cmdList["-r"] = (FrameResolution - 1).ToString();
-        //cmdList["-s"] = $"{(int)ResolutionWidth}x{(int)ResolutionHeight}";
-        //cmdList["-y"] = "";
         cmdList["-i"] = $"{picturesFolder}/pic%0d.png";
-        cmdList["-filter_complex"] = $"scale=120:-1,tile={gridWidth}x{gridHeight}";
+        cmdList["-filter_complex"] = $"scale=100:-1,tile={gridWidth}x{gridHeight}";
         cmdList[""] = filename;
         RunCommand(cmdList);
     }
@@ -184,32 +206,21 @@ public class ThumbManager : MonoBehaviour
         // ffmpeg -y -i E:/App/Unity/TileCityBuilder/Assets/ThumbCreator/_temp/pic%0d.png ../../../_Gif/output.gif
         var picturesFolder = GetTempFolderPath;
         var filename = GetFileName(FileName, "_Gif", "gif", (int)ResolutionHeight, (int)ResolutionHeight);
-        var fileList = Directory.GetFiles(picturesFolder, "*.png").ToList();
+        //var fileList = Directory.GetFiles(picturesFolder, "*.png").ToList();
 
         var cmdList = new Dictionary<string, string>();
-        cmdList["-r"] = (FrameResolution - 1).ToString();
+        cmdList["-r"] = $"{FrameRate}";
+        //cmdList["-framerate"] = $"{FrameRate}";
         cmdList["-s"] = $"{(int)ResolutionWidth}x{(int)ResolutionHeight}";
-        cmdList["-y"] = "";
+        //cmdList["-y"] = "";
         cmdList["-i"] = $"{picturesFolder}/pic%0d.png";
+        //cmdList["-lavfi"] = $"paletteuse=alpha_threshold=128";
+        //cmdList["-gifflags"] = $"";
+        //cmdList["-offsetting"] = $"";
         cmdList[""] = filename;
         RunCommand(cmdList);
-        //var e = new AnimatedGifEncoder();
-        //e.Start(filename);
-        //e.SetTransparent(System.Drawing.Color.FromArgb(0,0,0,0));
-        //e.SetDelay((int)FrameDuration * 100);
-        //e.SetRepeat(0); //-1:no repeat,0:always repeat 
-        //int counter = 0;
-
-        //foreach (var item in fileList)
-        //{
-        //    var img = Image.FromFile(item);
-        //    e.SetTransparent(System.Drawing.Color.FromArgb(0, 0, 0, 0));
-        //    e.AddFrame(img);
-        //    counter++;
-        //}
-        //e.Finish();
     }
-    
+
     private void GenerateMp4()
     {
         //ffmpeg -r 60 -f image2 -s 1920x1080 -y -i E:/App/Unity/TileCityBuilder/Assets/ThumbCreator/_temp/pic%0d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p ../../../_Video/test.mp4
@@ -217,7 +228,7 @@ public class ThumbManager : MonoBehaviour
         var filename = GetFileName(FileName, "_Video", "mp4", (int)ResolutionWidth, (int)ResolutionHeight);
 
         var cmdList = new Dictionary<string, string>();
-        cmdList["-r"] = (FrameResolution - 1).ToString();
+        cmdList["-r"] = (FrameResolution).ToString();
         cmdList["-f"] = "image2";
         cmdList["-s"] = $"{(int)ResolutionWidth}x{(int)ResolutionHeight}";
         cmdList["-y"] = "";
@@ -268,6 +279,8 @@ public class ThumbManager : MonoBehaviour
         RunCommand(cmdList);
     }
 
+    // https://ffmpeg.org/ffmpeg.html
+    // https://gist.github.com/tayvano/6e2d456a9897f55025e25035478a3a50
     private async void RunCommand(Dictionary<string, string> commandList)
     {
         var cmdArgument = string.Join(" ", commandList.Select(x => x.Key + " " + x.Value).ToArray());
@@ -280,30 +293,33 @@ public class ThumbManager : MonoBehaviour
         correctionProcess.StartInfo.CreateNoWindow = true;
         correctionProcess.StartInfo.UseShellExecute = false;
         correctionProcess.Start();
-        while(!correctionProcess.HasExited)
+        while (!correctionProcess.HasExited)
         {
-            Console.WriteLine("Excel is busy");
+            Console.WriteLine("ffmpeg is busy");
             await System.Threading.Tasks.Task.Delay(25);
         }
 
         CleanTempFolder();
+#if UNITY_EDITOR
         AssetDatabase.Refresh();
+#endif
 
     }
 
-    private void CleanTempFolder() 
+    private void CleanTempFolder()
     {
         try
         {
             // Delete all files in a directory    
             string[] files = Directory.GetFiles(GetTempFolderPath);
+            Debug.Log($"{files.Length} files has been deleted.");
             foreach (string file in files)
             {
                 File.Delete(file.Replace("\\", "/"));
-                Debug.Log($"{file} is deleted.");
+                //Debug.Log($"{file} is deleted.");
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Debug.LogError($"Delete Error : {ex}");
         }
@@ -313,22 +329,28 @@ public class ThumbManager : MonoBehaviour
 public enum Resolution
 {
     res8 = 8,
-    res32 =32,
-    res64=64,
-    res128=128,
-    res512=512,
-    res1024=1024,
-    res2048=2048,
-    res4096=4096,
+    res32 = 32,
+    res64 = 64,
+    res128 = 128,
+    res512 = 512,
+    res1024 = 1024,
+    res2048 = 2048,
+    res4096 = 4096,
     res8192 = 8192
 }
 
 public enum FileType
 {
+    [Description("PNG Image")]
     Png,
+    [Description("Animated Sprite")]
     Sprite,
+    [Description("GIF Image")]
     Gif,
+    [Description("MP4 Video")]
     Mp4,
+    [Description("AVI Video")]
     Avi,
+    [Description("MOV Video")]
     Mov
 }
