@@ -321,33 +321,8 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
-      propertyPath: m_ClearFlags
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: m_TargetTexture
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
       propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0.36078432
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0.7607844
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0.97647065
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
@@ -411,77 +386,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
-      propertyPath: FileName
-      value: test
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: FrameRate
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: RotationX
-      value: 24
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: RotationY
-      value: 338
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: RotationZ
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: ExportFile
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: FrameDuration
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: FrameResolution
-      value: 36
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: ResolutionWidth
-      value: 1024
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: ResolutionHeight
-      value: 1024
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
       propertyPath: CameraBackgroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: CameraBackgroundColor.b
-      value: 0.36078432
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: CameraBackgroundColor.g
-      value: 0.7607844
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: CameraBackgroundColor.r
-      value: 0.97647065
-      objectReference: {fileID: 0}
-    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
-        type: 3}
-      propertyPath: isCameraBackgroundTransparent
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
