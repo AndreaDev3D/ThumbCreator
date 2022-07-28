@@ -120,76 +120,6 @@ namespace ThumbCreator.Core
 #endif
         }
 
-        //        public void GeneratePng(bool isPng = true, int i = 0)
-        //        {
-        //            try
-        //            {
-        //                var camera = Camera.main;
-        //                string filename = isPng ? FileName.GetFileName(Filename, "_Png", "png", (int)ResolutionWidth, (int)ResolutionHeight) : FileName.GetTempFileName((int)ResolutionWidth, (int)ResolutionHeight, i);
-
-        //                var renderTexture = new RenderTexture((int)ResolutionWidth, (int)ResolutionHeight, 24);
-        //                camera.targetTexture = renderTexture;
-        //                var screenShot = new Texture2D((int)ResolutionWidth, (int)ResolutionHeight, TextureFormat.ARGB32, false);
-        //#if UNITY_EDITOR
-        //                screenShot.alphaIsTransparency = isCameraBackgroundTransparent;
-        //#endif
-        //                screenShot.Apply();
-        //                camera.Render();
-        //                RenderTexture.active = renderTexture;
-        //                screenShot.ReadPixels(new Rect(0, 0, (int)ResolutionWidth, (int)ResolutionHeight), 0, 0);
-        //                camera.targetTexture = null;
-        //                RenderTexture.active = null;
-        //                DestroyImmediate(renderTexture);
-        //                byte[] bytes = screenShot.EncodeToPNG();
-        //                File.WriteAllBytes(filename, bytes);
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Debug.LogError($"{ex}");
-        //            }
-        //        }
-
-//        public void GeneratePng1(bool isPng = true, int i = 0)
-//        {
-//            int width = (int)ResolutionWidth;
-//            int height = (int)ResolutionHeight;
-//            var cam = Camera.main;
-//            string filename = isPng ? GetFileName(Filename, "_Png", "png", (int)ResolutionWidth, (int)ResolutionHeight) : GetTempFileName((int)ResolutionWidth, (int)ResolutionHeight, i);
-
-//            // Depending on your render pipeline, this may not work.
-//            var bak_cam_targetTexture = cam.targetTexture;
-//            var bak_cam_clearFlags = cam.clearFlags;
-//            var bak_RenderTexture_active = RenderTexture.active;
-
-//            var tex_transparent = new Texture2D(width, height, TextureFormat.ARGB32, false);
-//            // Must use 24-bit depth buffer to be able to fill background.
-//            var render_texture = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
-//            var grab_area = new Rect(0, 0, width, height);
-
-//            RenderTexture.active = render_texture;
-//            cam.targetTexture = render_texture;
-//            cam.clearFlags = CameraClearFlags.SolidColor;
-
-//            // Simple: use a clear background
-//            cam.backgroundColor = Color.clear;
-//            cam.Render();
-//            tex_transparent.ReadPixels(grab_area, 0, 0);
-//#if UNITY_EDITOR
-//            tex_transparent.alphaIsTransparency = true;
-//            tex_transparent.Apply();
-//            AssetDatabase.Refresh();
-//#endif
-//            // Encode the resulting output texture to a byte array then write to the file
-//            byte[] pngShot = tex_transparent.EncodeToPNG();
-//            File.WriteAllBytes(filename, pngShot);
-
-//            cam.clearFlags = bak_cam_clearFlags;
-//            cam.targetTexture = bak_cam_targetTexture;
-//            RenderTexture.active = bak_RenderTexture_active;
-//            RenderTexture.ReleaseTemporary(render_texture);
-//            DestroyImmediate(tex_transparent);
-//        }
-
         private void GenerateSprite()
         {
             //$ ffmpeg -i %03d.png -filter_complex scale=120:-1,tile=5x1 output.png
@@ -205,7 +135,7 @@ namespace ThumbCreator.Core
             cmdList["-i"] = $"{picturesFolder}/pic%0d.png";
             cmdList["-filter_complex"] = $"scale=100:-1,tile={gridWidth}x{gridHeight}";
             cmdList[""] = filename;
-            RunCommand(cmdList);
+            Cmd.RunCommand(cmdList);
         }
 
         private void GenerateGif()
@@ -219,7 +149,7 @@ namespace ThumbCreator.Core
             cmdList["-s"] = $"{(int)ResolutionWidth}x{(int)ResolutionHeight}";
             cmdList["-i"] = $"{picturesFolder}/pic%0d.png";
             cmdList[""] = filename;
-            RunCommand(cmdList);
+            Cmd.RunCommand(cmdList);
         }
 
         private void GenerateMp4()
@@ -238,7 +168,7 @@ namespace ThumbCreator.Core
             cmdList["-crf"] = "25";
             cmdList["-pix_fmt"] = "yuv420p";
             cmdList[""] = filename;
-            RunCommand(cmdList);
+            Cmd.RunCommand(cmdList);
         }
 
         private void GenerateAvi()
@@ -257,7 +187,7 @@ namespace ThumbCreator.Core
             cmdList["-crf"] = "25";
             cmdList["-pix_fmt"] = "yuv420p";
             cmdList[""] = filename;
-            RunCommand(cmdList);
+            Cmd.RunCommand(cmdList);
         }
 
         private void GenerateMov()
@@ -277,50 +207,9 @@ namespace ThumbCreator.Core
             cmdList["-crf"] = "25";
             cmdList["-pix_fmt"] = "bgra";
             cmdList[""] = filename;
-            RunCommand(cmdList);
+            Cmd.RunCommand(cmdList);
         }
 
-        // https://ffmpeg.org/ffmpeg.html
-        // https://gist.github.com/tayvano/6e2d456a9897f55025e25035478a3a50
-        private async void RunCommand(Dictionary<string, string> commandList)
-        {
-            var cmdArgument = string.Join(" ", commandList.Select(x => x.Key + " " + x.Value).ToArray());
-            Debug.Log(cmdArgument);
-            var converter = new ProcessStartInfo($"{FileName.GetBaseFolderPath}/Plugins/ffmpeg/bin/ffmpeg.exe");
-            converter.UseShellExecute = false;
-            converter.Arguments = cmdArgument;
-            Process correctionProcess = new Process();
-            correctionProcess.StartInfo = converter;
-            correctionProcess.StartInfo.CreateNoWindow = true;
-            correctionProcess.StartInfo.UseShellExecute = false;
-            correctionProcess.Start();
-            while (!correctionProcess.HasExited)
-            {
-                Console.WriteLine("ffmpeg is busy");
-                await System.Threading.Tasks.Task.Delay(25);
-            }
-
-            CleanTempFolder();
-#if UNITY_EDITOR
-            AssetDatabase.Refresh();
-#endif
-        }
-
-        private void CleanTempFolder()
-        {
-            try
-            {  
-                string[] files = Directory.GetFiles(FileName.GetTempFolderPath);
-                Debug.Log($"{files.Length} files has been deleted.");
-                foreach (string file in files)
-                {
-                    File.Delete(file.Replace("\\", "/"));
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Delete Error : {ex}");
-            }
-        }
+        
     }
 }
