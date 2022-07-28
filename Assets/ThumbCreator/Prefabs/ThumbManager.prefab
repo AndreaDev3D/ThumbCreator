@@ -45,7 +45,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 1}
+  m_BackGroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -168,7 +168,7 @@ MonoBehaviour:
   RotationY: 338
   RotationZ: 0
   isCameraOrthographic: 1
-  CameraBackgroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 1}
+  CameraBackgroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 0}
   CameraX: 0
   CameraY: 0
   CameraZ: -1
