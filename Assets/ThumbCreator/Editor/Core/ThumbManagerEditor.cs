@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using ThumbCreator.Core;
 using UnityEditor;
 using UnityEngine;
 

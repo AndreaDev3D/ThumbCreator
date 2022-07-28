@@ -29,6 +29,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8903764446349122844}
   m_Father: {fileID: 8903764445056552400}
@@ -44,7 +45,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.6603774, g: 0.42240357, b: 0.25854397, a: 1}
+  m_BackGroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -107,6 +108,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 0
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
@@ -144,6 +146,7 @@ Transform:
   m_LocalRotation: {x: 0.34959874, y: 0.37577567, z: -0.15565138, w: 0.844006}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8903764444526432068}
   m_Father: {fileID: 0}
@@ -161,21 +164,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d109aa393c3c3c048a8bcd8815f6ae77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  RotationX: 26
-  RotationY: 324
+  RotationX: 24
+  RotationY: 338
   RotationZ: 0
   isCameraOrthographic: 1
-  isCameraBackgroundTransparent: 0
-  CameraBackgroundColor: {r: 0.6603774, g: 0.42240357, b: 0.25854397, a: 1}
+  CameraBackgroundColor: {r: 0.97647065, g: 0.7607844, b: 0.36078432, a: 1}
   CameraX: 0
   CameraY: 0
   CameraZ: -1
-  FileName: Image
+  Filename: Image
   ExportFile: 0
   ResolutionWidth: 1024
   ResolutionHeight: 1024
-  FrameResolution: 64
-  FrameDuration: 1
+  FrameResolution: 36
+  FrameRate: 30
 --- !u!1 &8903764446349122847
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,6 +205,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8903764444526432068}
   m_RootOrder: 0

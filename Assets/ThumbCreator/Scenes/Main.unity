@@ -207,6 +207,7 @@ GameObject:
   m_Component:
   - component: {fileID: 900859225}
   - component: {fileID: 900859224}
+  - component: {fileID: 900859226}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -286,10 +287,31 @@ Transform:
   m_LocalRotation: {x: 0.21828581, y: 0.51899153, z: -0.13906339, w: 0.81465364}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 30, y: 65, z: 0}
+--- !u!114 &900859226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 900859223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 1
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
 --- !u!1001 &8903764444490838130
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -310,22 +332,22 @@ PrefabInstance:
     - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_BackGroundColor.a
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0.25854397
+      value: 0.36078432
       objectReference: {fileID: 0}
     - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0.42240357
+      value: 0.7607844
       objectReference: {fileID: 0}
     - target: {fileID: 8903764444526432075, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 0.6603774
+      value: 0.97647065
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
@@ -350,22 +372,22 @@ PrefabInstance:
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.9848078
+      value: -0.9601763
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.1736482
+      value: -0.20409177
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.18663938
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0.039671425
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552400, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
@@ -400,12 +422,12 @@ PrefabInstance:
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: RotationX
-      value: 20
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: RotationY
-      value: 0
+      value: 338
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
@@ -415,7 +437,7 @@ PrefabInstance:
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
       propertyPath: ExportFile
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
@@ -444,8 +466,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
+      propertyPath: CameraBackgroundColor.b
+      value: 0.36078432
+      objectReference: {fileID: 0}
+    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
+        type: 3}
+      propertyPath: CameraBackgroundColor.g
+      value: 0.7607844
+      objectReference: {fileID: 0}
+    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
+        type: 3}
+      propertyPath: CameraBackgroundColor.r
+      value: 0.97647065
+      objectReference: {fileID: 0}
+    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
+        type: 3}
       propertyPath: isCameraBackgroundTransparent
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3b74f329460b94b4f9ac974de505e159, type: 3}
