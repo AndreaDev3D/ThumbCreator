@@ -64,3 +64,5 @@ UserSettings/Layouts/default-2021.dwlt
 *.psd
 Assets/ThumbCreator/Textures/Lock_Proj.psd.meta
 UserSettings/EditorUserSettings.asset
+Assets/ThumbCreator/_Png
+Assets/ThumbCreator/Plugins/ffmpeg/bin/ffmpeg.exe

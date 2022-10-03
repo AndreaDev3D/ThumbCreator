@@ -386,6 +386,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
         type: 3}
+      propertyPath: Filename
+      value: ImageTest
+      objectReference: {fileID: 0}
+    - target: {fileID: 8903764445056552403, guid: 3b74f329460b94b4f9ac974de505e159,
+        type: 3}
       propertyPath: CameraBackgroundColor.a
       value: 0
       objectReference: {fileID: 0}

@@ -45,11 +45,6 @@ namespace ThumbCreator.Core
         public int FrameResolution = 16;
         public int FrameRate = 1;
 
-        //public string GetBaseFolderPath => $"{Application.dataPath}/ThumbCreator";
-        //public string GetTempFolderPath => $"{GetBaseFolderPath}/_temp";
-        //public string GetTempFileName(int width, int height, int frameId) => $"{GetBaseFolderPath}/_temp/pic{frameId}.png";//{System.DateTime.Now.ToString("yyyyMMddHHmmssfff")}.png";
-        //public string GetFileName(string name, string folder, string extention, int width, int height) => $"{GetBaseFolderPath}/{folder}/{name}_{width}x{height}_{DateTime.Now.ToString("yyyyMMddHHmmssfff")}.{extention}";
-
         void Update()
         {
             var objRot = transform.rotation.eulerAngles;
