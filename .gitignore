@@ -61,3 +61,6 @@ crashlytics-build.properties
 .vscode/launch.json
 .vscode/settings.json
 UserSettings/Layouts/default-2021.dwlt
+*.psd
+Assets/ThumbCreator/Textures/Lock_Proj.psd.meta
+UserSettings/EditorUserSettings.asset
