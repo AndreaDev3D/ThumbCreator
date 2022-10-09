@@ -27,8 +27,6 @@ Version v1.2 contain the toon shader.*
 
 <p align="right"><b><a href="#top">TOP &#8679;</a></b></p>
 
-<img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image_1024_alpha_2.png" width="512" height="512">
-<img src="https://github.com/AndreaDev3D/ThumbCreator/blob/master/_Screenshot/Image_1024_2.png" width="512" height="512">
 
 
 
