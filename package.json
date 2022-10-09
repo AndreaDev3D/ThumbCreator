@@ -1,0 +1,20 @@
+{
+  "name":"com.andreadev3d.thumbcreator",
+  "version": "1.3.0",
+  "displayName": "Thumb Creator",
+  "description": "Free untiy tool to easily generate thumbnail or Icon, even with transparent background, easy to use, screenshot create layer add effects, such as outline or shadow, and save the render.",
+  "unity": "2021.3",
+  "author": {
+    "name": "AndreaDev3d",
+    "url": "https://andreadev3d.com/"
+  },
+  "dependencies": {
+  },
+  "keywords": [
+	"thumbcreator",
+	"thumbnail",
+	"Icon",
+    "2d",
+    "Effects"
+  ]
+}
