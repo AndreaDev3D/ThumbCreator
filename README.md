@@ -14,7 +14,7 @@
 </p>
 
 <!-- DESCRIPTIONS -->
-# Thumb Creator v1.3
+# Thumb Creator v1.4
 Free tool for unity 2021.x to easily generate thumb for Icon and model in inventory, even with transparent background, easy to use to create layerd icons with outline or shadow effects :
 
 https://user-images.githubusercontent.com/22279134/193661684-d55d9a37-a2ce-4860-ab01-a953bafc1efb.mp4

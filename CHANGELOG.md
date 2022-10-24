@@ -20,3 +20,6 @@ All notable changes to this project will be documented in this file.
 - Add: Effects to post-process layers
 - Remove: KyleRobot free assest
 - Remove: FFMPG library
+
+## [1.4.0] - 2022-10-10
+- Add: Screenshot with UI and x2 resolutions
