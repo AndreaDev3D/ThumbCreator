@@ -1,54 +1,57 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-
-// TODO: Needs to show screenshot GUI bounds, and should be adjustable.
-// GUI bounds should be created whenever attached to camera.
 
 namespace abmarnie
 {
     /// <summary>
-    /// Attach this as a component to a Camera in your scene.
+    /// Attach this to a Camera in your scene. Choose a Filename and SaveDirectory, then click "Generate Image".
     /// </summary>
     [ExecuteInEditMode]
     [RequireComponent(typeof(Camera))]
     public class CameraPhotoCapture : MonoBehaviour
     {
+        // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
         public string SaveDirectory;
+        public string Filename;
+        public bool OverwriteFile = false;
+        public string PostfixDelimiter;
+        public Resolution PhotoResolution = Resolution.Res128;
+        public FileType FileType = FileType.png;
 
-        public bool FocusOnTarget = false;
-        public Transform Target;
+        public bool LockToTarget = false;
+        public Transform LockTarget;
+        public bool UseTargetAsFilename = false;
         public float Distance = 5f;
         public float HorizontalOrbit = 0f;
         public float VerticalOrbit = 0f;
         public bool UseUnlitShader = false;
-        public bool CenterCamera = false;
-        public bool UseTargetAsFilename = false;
 
-        public string Filename;
-
-        public bool OverwriteFile = false;
-        public string PostfixDelimiter;
-
-        public Resolution PhotoResolution = Resolution.Res128;
-        public FileType FileType = FileType.png;
+        private bool _centerCamera = false;
+        public bool CenterCamera => _centerCamera;
 
         private void OnEnable()
         {
-            if (FocusOnTarget)
+            if (TryGetComponent<Camera>(out Camera camera))
+            {
+
+            }
+            if (LockToTarget && LockTarget != null)
             {
                 SetCameraPosition(GetComponent<Camera>(),
-                    !CenterCamera ? Target : GameObject.Find(Target.name + " Center").transform,
+                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
                     Distance, HorizontalOrbit, VerticalOrbit);
             }
         }
 
         private void Update()
         {
-            if (FocusOnTarget)
+            if (LockToTarget && LockTarget != null)
             {
                 SetCameraPosition(GetComponent<Camera>(),
-                    !CenterCamera ? Target : GameObject.Find(Target.name + " Center").transform,
+                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
                     Distance, HorizontalOrbit, VerticalOrbit);
             }
         }
@@ -72,59 +75,64 @@ namespace abmarnie
                 return;
             }
 
-            Texture2D photo;
-            if (FocusOnTarget && UseUnlitShader)
+            Texture2D image;
+            if (LockToTarget && UseUnlitShader)
             {
-                string shaderName = "HDRP/UnLit";
-                Shader shader = Shader.Find(shaderName);
-                if (shader == null)
-                {
-                    shaderName = "Universal Render Pipeline/Unlit";
-                    shader = Shader.Find(shaderName);
-                    if (shader == null)
-                    {
-                        shaderName = "Unlit/Texture";
-                        shader = Shader.Find(shaderName);
-                    }
-                }
-                var targetsRenderer = Target.GetComponent<MeshRenderer>();
+                Shader unlit = GetUnlitShader();
+                var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
                 Shader original = targetsRenderer.sharedMaterial.shader;
-                targetsRenderer.material.shader = shader;
+                targetsRenderer.material.shader = unlit;
 
-                var renderTexture = new RenderTexture((int)PhotoResolution, (int)PhotoResolution, 32);
-                RenderCameraToTexture(renderTexture);
-                photo = ReadPixelsToTexture((int)PhotoResolution);
-                RenderCameraToTexture(null);
-                DestroyImmediate(renderTexture);
+                image = GenerateImage((int)PhotoResolution);
 
                 targetsRenderer.sharedMaterial.shader = original;
+
+                static Shader GetUnlitShader()
+                {
+                    string shaderName = "HDRP/UnLit";
+                    Shader shader = Shader.Find(shaderName);
+                    if (shader == null)
+                    {
+                        shaderName = "Universal Render Pipeline/Unlit";
+                        shader = Shader.Find(shaderName);
+                        if (shader == null)
+                        {
+                            shaderName = "Unlit/Texture";
+                            shader = Shader.Find(shaderName);
+                        }
+                    }
+                    return shader;
+                }
             }
             else
+                image = GenerateImage((int)PhotoResolution);
+
+            SaveToFile(image, SaveDirectory, filename, FileType, OverwriteFile, PostfixDelimiter);
+
+            static Texture2D GenerateImage(int resolution)
             {
-                var renderTexture = new RenderTexture((int)PhotoResolution, (int)PhotoResolution, 32);
+                var renderTexture = new RenderTexture(resolution, resolution, 32);
                 RenderCameraToTexture(renderTexture);
-                photo = ReadPixelsToTexture((int)PhotoResolution);
+                Texture2D image = ReadPixelsToTexture(resolution);
                 RenderCameraToTexture(null);
                 DestroyImmediate(renderTexture);
-            }
+                return image;
 
-            SaveToFile(photo, SaveDirectory, filename, FileType, OverwriteFile, PostfixDelimiter);
+                static void RenderCameraToTexture(RenderTexture texture)
+                {
+                    // If texture is null, it renders to Main Window.
+                    Camera.main.targetTexture = texture;
+                    RenderTexture.active = texture;
+                    Camera.main.Render();
+                }
 
-            void RenderCameraToTexture(RenderTexture texture)
-            {
-                // If texture is null, it renders to Main Window.
-                var camera = GetComponent<Camera>();
-                camera.targetTexture = texture;
-                RenderTexture.active = texture;
-                camera.Render();
-            }
-
-            static Texture2D ReadPixelsToTexture(int res)
-            {
-                var texture = new Texture2D(res, res);
-                texture.ReadPixels(new Rect(0, 0, res, res), 0, 0);
-                texture.Apply();
-                return texture;
+                static Texture2D ReadPixelsToTexture(int res)
+                {
+                    var texture = new Texture2D(res, res);
+                    texture.ReadPixels(new Rect(0, 0, res, res), 0, 0);
+                    texture.Apply();
+                    return texture;
+                }
             }
 
             static void SaveToFile(Texture2D texture, string path, string filename, FileType filetype,
@@ -151,11 +159,11 @@ namespace abmarnie
 
         public void ToggleFocusBetweenPivotAndCenter()
         {
-            if (CenterCamera == false)
+            if (!CenterCamera)
             {
-                if (Target.TryGetComponent<MeshRenderer>(out var renderer))
+                if (LockTarget.TryGetComponent<MeshRenderer>(out var renderer))
                 {
-                    var newTarget = new GameObject(Target.name + " Center");
+                    var newTarget = new GameObject(LockTarget.name + " Center");
                     newTarget.transform.position = renderer.bounds.center;
                     SetCameraPosition(GetComponent<Camera>(), newTarget.transform, Distance, HorizontalOrbit, VerticalOrbit);
                 }
@@ -164,10 +172,13 @@ namespace abmarnie
             }
             else
             {
-                DestroyImmediate(GameObject.Find(Target.name + " Center"));
-                SetCameraPosition(GetComponent<Camera>(), Target.transform, Distance, HorizontalOrbit, VerticalOrbit);
+                if (LockTarget != null)
+                {
+                    DestroyImmediate(GameObject.Find(LockTarget.name + " Center"));
+                    SetCameraPosition(GetComponent<Camera>(), LockTarget.transform, Distance, HorizontalOrbit, VerticalOrbit);
+                }
             }
-            CenterCamera = !CenterCamera;
+            _centerCamera = !_centerCamera;
             SceneView.RepaintAll();
         }
     }
@@ -176,42 +187,30 @@ namespace abmarnie
     public class CameraPhotoCaptureEditor : Editor
     {
         private SerializedProperty saveDirectory;
+        private SerializedProperty filename;
+        private SerializedProperty overwriteFile;
+        private SerializedProperty postfixDelimiter;
+        private SerializedProperty photoResolution;
+        private SerializedProperty fileType;
 
-        private SerializedProperty focusOnTarget;
-        private SerializedProperty cameraTarget;
+        private SerializedProperty lockToTarget;
+        private SerializedProperty lockTarget;
+        private SerializedProperty useTargetAsFilename;
+
         private SerializedProperty distance;
         private SerializedProperty horizontalOrbit;
         private SerializedProperty verticalOrbit;
         private SerializedProperty useUnlitShader;
-        private SerializedProperty useTargetAsFilename;
-
-        private SerializedProperty filename;
-
-        private SerializedProperty overwriteFile;
-        private SerializedProperty postfixDelimiter;
-
-        private SerializedProperty photoResolution;
-        private SerializedProperty fileType;
 
         private void OnEnable()
         {
-            saveDirectory = serializedObject.FindProperty("SaveDirectory");
-
-            focusOnTarget = serializedObject.FindProperty("FocusOnTarget");
-            cameraTarget = serializedObject.FindProperty("Target");
-            distance = serializedObject.FindProperty("Distance");
-            horizontalOrbit = serializedObject.FindProperty("HorizontalOrbit");
-            verticalOrbit = serializedObject.FindProperty("VerticalOrbit");
-            useUnlitShader = serializedObject.FindProperty("UseUnlitShader");
-            useTargetAsFilename = serializedObject.FindProperty("UseTargetAsFilename");
-
-            filename = serializedObject.FindProperty("Filename");
-
-            overwriteFile = serializedObject.FindProperty("OverwriteFile");
-            postfixDelimiter = serializedObject.FindProperty("PostfixDelimiter");
-
-            photoResolution = serializedObject.FindProperty("PhotoResolution");
-            fileType = serializedObject.FindProperty("FileType");
+            string[] fieldNames = Array.ConvertAll(typeof(CameraPhotoCapture).GetFields(), field => field.Name);
+            foreach (var fieldName in fieldNames)
+            {
+                string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
+                FieldInfo fieldInfo = typeof(CameraPhotoCaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
+                fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
+            }
         }
 
         public override void OnInspectorGUI()
@@ -221,46 +220,48 @@ namespace abmarnie
 
             EditorGUILayout.PropertyField(saveDirectory);
 
-            if (focusOnTarget.boolValue == false || useTargetAsFilename.boolValue == false)
+            if (lockToTarget.boolValue == false || useTargetAsFilename.boolValue == false)
                 EditorGUILayout.PropertyField(filename);
 
             EditorGUILayout.PropertyField(overwriteFile);
             if (!overwriteFile.boolValue)
                 EditorGUILayout.PropertyField(postfixDelimiter);
 
+            EditorGUILayout.PropertyField(photoResolution);
+            EditorGUILayout.PropertyField(fileType);
 
-            EditorGUILayout.PropertyField(focusOnTarget);
-            if (focusOnTarget.boolValue)
+            EditorGUILayout.PropertyField(lockToTarget);
+            if (lockToTarget.boolValue)
+                ShowInInspector(serializedObject, lockTarget);
+
+            if (lockToTarget.boolValue && photoCapture.LockTarget != null)
             {
-                ShowInInspector(cameraTarget);
                 EditorGUILayout.PropertyField(useTargetAsFilename);
                 EditorGUILayout.Slider(distance, 0, 10, new GUIContent("Camera Distance To Target"));
                 EditorGUILayout.Slider(horizontalOrbit, -180f, 180f, new GUIContent("Horizontal Orbit Angle"));
                 EditorGUILayout.Slider(verticalOrbit, -180f, 180f, new GUIContent("Vertical Orbit Angle"));
                 EditorGUILayout.PropertyField(useUnlitShader);
-                if (GUILayout.Button("Focus Centering Toggle"))
-                    photoCapture.ToggleFocusBetweenPivotAndCenter();
-                if (focusOnTarget.boolValue)
-                {
-                    EditorGUILayout.LabelField("Focus: ",
-                        !photoCapture.CenterCamera ? photoCapture.Target.name : photoCapture.Target.name + " Center");
-                }
-            }
 
-            EditorGUILayout.PropertyField(photoResolution);
-            EditorGUILayout.PropertyField(fileType);
+                if (GUILayout.Button("Center Focus Toggle (Recommended)"))
+                    photoCapture.ToggleFocusBetweenPivotAndCenter();
+
+                EditorGUILayout.LabelField("Locked to: ",
+                    !photoCapture.CenterCamera ? photoCapture.LockTarget.name : photoCapture.LockTarget?.name + " Center");
+            }
+            else
+                EditorGUILayout.LabelField("Locked to: ", "Nothing");
 
             serializedObject.ApplyModifiedProperties();
 
             if (GUILayout.Button("Generate Image"))
             {
-                photoCapture.CapturePhoto(photoCapture.UseTargetAsFilename ? photoCapture.Target.name
+                photoCapture.CapturePhoto(photoCapture.UseTargetAsFilename ? photoCapture.LockTarget.name
                     : photoCapture.Filename);
             }
-
         }
 
-        private void ShowInInspector(SerializedProperty property, bool includeChildren = true, GUIContent label = null)
+        private static void ShowInInspector(SerializedObject serializedObject, SerializedProperty property,
+            bool includeChildren = true, GUIContent label = null)
         {
             label ??= new GUIContent(property.displayName);
             EditorGUI.BeginChangeCheck();
