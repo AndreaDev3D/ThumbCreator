@@ -4,13 +4,13 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace abmarnie
+namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a Filename and SaveDirectory, then click "Generate Image".
     /// </summary>
     [ExecuteInEditMode]
-    public class CameraPhotoCapture : MonoBehaviour
+    public class Photocapture : MonoBehaviour
     {
         // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
         public string SaveDirectory;
@@ -31,34 +31,24 @@ namespace abmarnie
         private bool _centerCamera = false;
         public bool CenterCamera => _centerCamera;
 
-        private void OnEnable()
-        {
-            if (TryGetComponent<Camera>(out Camera camera))
-            {
-                if (LockToTarget && LockTarget != null)
-                {
-                    SetCameraPosition(camera,
-                        _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
-                        Distance, HorizontalOrbit, VerticalOrbit);
-                }
-            }
-            else
-                Debug.Log("CameraPhotoCapture component is not attached to a Camera... please fix this...");
-        }
+        private void OnEnable() => ValidateCameraAndSetTargetIfNeeded(); 
 
-        private void Update()
+        private void Update() => ValidateCameraAndSetTargetIfNeeded();
+
+        private void ValidateCameraAndSetTargetIfNeeded()
         {
-            if (TryGetComponent<Camera>(out Camera camera))
+            if (!TryGetComponent<Camera>(out Camera camera))
             {
-                if (LockToTarget && LockTarget != null)
-                {
-                    SetCameraPosition(camera,
-                        _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
-                        Distance, HorizontalOrbit, VerticalOrbit);
-                }
-            }
-            else
                 Debug.Log("CameraPhotoCapture component is not attached to a Camera... please fix this...");
+                return;
+            }
+
+            if (LockToTarget && LockTarget != null)
+            {
+                SetCameraPosition(camera,
+                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
+                    Distance, HorizontalOrbit, VerticalOrbit);
+            }
         }
 
         private static void SetCameraPosition(Camera camera, Transform target, float distance, float horizontalOrbit, float verticalOrbit)
@@ -188,8 +178,8 @@ namespace abmarnie
         }
     }
 
-    [CustomEditor(typeof(CameraPhotoCapture))]
-    public class CameraPhotoCaptureEditor : Editor
+    [CustomEditor(typeof(Photocapture))]
+    public class PhotocaptureEditor : Editor
     {
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
@@ -209,18 +199,18 @@ namespace abmarnie
 
         private void OnEnable()
         {
-            string[] fieldNames = Array.ConvertAll(typeof(CameraPhotoCapture).GetFields(), field => field.Name);
+            string[] fieldNames = Array.ConvertAll(typeof(Photocapture).GetFields(), field => field.Name);
             foreach (var fieldName in fieldNames)
             {
                 string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                FieldInfo fieldInfo = typeof(CameraPhotoCaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
+                FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
                 fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
             }
         }
 
         public override void OnInspectorGUI()
         {
-            var photoCapture = target as CameraPhotoCapture;
+            var photoCapture = target as Photocapture;
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(saveDirectory);
