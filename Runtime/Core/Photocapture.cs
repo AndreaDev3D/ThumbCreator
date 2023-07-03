@@ -7,7 +7,10 @@ using UnityEngine;
 namespace PhotocaptureFromCamera
 {
     /// <summary>
-    /// Attach this to a Camera in your scene. Choose a Filename and SaveDirectory, then click "Generate Image".
+    /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
+    /// then click "Capture & Save Image". Consider setting up a new "photobooth" scene to do this all in, manually 
+    /// placing background (or foreground) props. For transparent backgrounds, change the Camera component fields: 
+    /// <see cref="CameraClearFlags.Color"/>  and <see cref="Camera.backgroundColor"/> to maximum alpha.
     /// </summary>
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -251,7 +254,7 @@ namespace PhotocaptureFromCamera
                     photoCapture.ToggleFocusBetweenPivotAndCenter();
 
                 EditorGUILayout.LabelField("Locked to: ",
-                    !photoCapture.CenterCamera ? photoCapture.LockTarget.name : photoCapture.LockTarget?.name + " Center");
+                    !photoCapture.CenterCamera ? photoCapture.LockTarget.name : photoCapture.LockTarget.name + " Center");
             }
             else
                 EditorGUILayout.LabelField("Locked to: ", "Nothing");
