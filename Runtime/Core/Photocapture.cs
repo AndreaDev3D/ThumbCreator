@@ -213,29 +213,30 @@ namespace PhotocaptureFromCamera
             var photoCapture = target as Photocapture;
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(saveDirectory);
+            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
 
             if (lockToTarget.boolValue == false || useTargetAsFilename.boolValue == false)
-                EditorGUILayout.PropertyField(filename);
+                EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
 
-            EditorGUILayout.PropertyField(overwriteFile);
+            EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
+
             if (!overwriteFile.boolValue)
-                EditorGUILayout.PropertyField(postfixDelimiter);
+                EditorGUILayout.PropertyField(postfixDelimiter, new GUIContent("Postfix Delimiter", "The delimiter to append to the filename when generating a unique filename."));
 
-            EditorGUILayout.PropertyField(photoResolution);
-            EditorGUILayout.PropertyField(fileType);
+            EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
+            EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
 
-            EditorGUILayout.PropertyField(lockToTarget);
+            EditorGUILayout.PropertyField(lockToTarget, new GUIContent("Lock To Target", "If enabled, the camera will be locked orbit and focus on a target, which you set below."));
             if (lockToTarget.boolValue)
                 ShowInInspector(serializedObject, lockTarget);
 
             if (lockToTarget.boolValue && photoCapture.LockTarget != null)
             {
                 EditorGUILayout.PropertyField(useTargetAsFilename);
-                EditorGUILayout.Slider(distance, 0, 10, new GUIContent("Camera Distance To Target"));
-                EditorGUILayout.Slider(horizontalOrbit, -180f, 180f, new GUIContent("Horizontal Orbit Angle"));
-                EditorGUILayout.Slider(verticalOrbit, -180f, 180f, new GUIContent("Vertical Orbit Angle"));
-                EditorGUILayout.PropertyField(useUnlitShader);
+                EditorGUILayout.Slider(distance, 0, 10, new GUIContent("Target Distance", "The distance the camera is away from the target."));
+                EditorGUILayout.Slider(horizontalOrbit, -180f, 180f, new GUIContent("Horizontal Orbit Angle", "The angle to orbit around the target horizontally."));
+                EditorGUILayout.Slider(verticalOrbit, -180f, 180f, new GUIContent("Vertical Orbit Angle", "The angle to orbit around the target vertically."));
+                EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
 
                 if (GUILayout.Button("Center Focus Toggle (Recommended)"))
                     photoCapture.ToggleFocusBetweenPivotAndCenter();
@@ -248,7 +249,7 @@ namespace PhotocaptureFromCamera
 
             serializedObject.ApplyModifiedProperties();
 
-            if (GUILayout.Button("Generate Image"))
+            if (GUILayout.Button("Capture & Save Image"))
             {
                 photoCapture.CapturePhoto(photoCapture.UseTargetAsFilename ? photoCapture.LockTarget.name
                     : photoCapture.Filename);
