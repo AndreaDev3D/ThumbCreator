@@ -10,7 +10,6 @@ namespace abmarnie
     /// Attach this to a Camera in your scene. Choose a Filename and SaveDirectory, then click "Generate Image".
     /// </summary>
     [ExecuteInEditMode]
-    [RequireComponent(typeof(Camera))]
     public class CameraPhotoCapture : MonoBehaviour
     {
         // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
@@ -36,24 +35,30 @@ namespace abmarnie
         {
             if (TryGetComponent<Camera>(out Camera camera))
             {
-
+                if (LockToTarget && LockTarget != null)
+                {
+                    SetCameraPosition(camera,
+                        _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
+                        Distance, HorizontalOrbit, VerticalOrbit);
+                }
             }
-            if (LockToTarget && LockTarget != null)
-            {
-                SetCameraPosition(GetComponent<Camera>(),
-                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
-                    Distance, HorizontalOrbit, VerticalOrbit);
-            }
+            else
+                Debug.Log("CameraPhotoCapture component is not attached to a Camera... please fix this...");
         }
 
         private void Update()
         {
-            if (LockToTarget && LockTarget != null)
+            if (TryGetComponent<Camera>(out Camera camera))
             {
-                SetCameraPosition(GetComponent<Camera>(),
-                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
-                    Distance, HorizontalOrbit, VerticalOrbit);
+                if (LockToTarget && LockTarget != null)
+                {
+                    SetCameraPosition(camera,
+                        _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
+                        Distance, HorizontalOrbit, VerticalOrbit);
+                }
             }
+            else
+                Debug.Log("CameraPhotoCapture component is not attached to a Camera... please fix this...");
         }
 
         private static void SetCameraPosition(Camera camera, Transform target, float distance, float horizontalOrbit, float verticalOrbit)
