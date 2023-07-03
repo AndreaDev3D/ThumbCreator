@@ -31,7 +31,7 @@ namespace PhotocaptureFromCamera
         private bool _centerCamera = false;
         public bool CenterCamera => _centerCamera;
 
-        private void OnEnable() => ValidateCameraAndSetTargetIfNeeded(); 
+        private void OnEnable() => ValidateCameraAndSetTargetIfNeeded();
 
         private void Update() => ValidateCameraAndSetTargetIfNeeded();
 
@@ -77,9 +77,7 @@ namespace PhotocaptureFromCamera
                 var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
                 Shader original = targetsRenderer.sharedMaterial.shader;
                 targetsRenderer.material.shader = unlit;
-
                 image = GenerateImage((int)PhotoResolution);
-
                 targetsRenderer.sharedMaterial.shader = original;
 
                 static Shader GetUnlitShader()
@@ -123,6 +121,7 @@ namespace PhotocaptureFromCamera
 
                 static Texture2D ReadPixelsToTexture(int res)
                 {
+                    // Pixels are read from RenderTexture.active.
                     var texture = new Texture2D(res, res);
                     texture.ReadPixels(new Rect(0, 0, res, res), 0, 0);
                     texture.Apply();
@@ -178,6 +177,10 @@ namespace PhotocaptureFromCamera
         }
     }
 
+    /// <summary>
+    /// This class is for making <see cref="Photocapture"/> fields editable by game developers in a pleasant way. 
+    /// It does not need to be manually instantiated or attached to anything to be used.
+    /// </summary>
     [CustomEditor(typeof(Photocapture))]
     public class PhotocaptureEditor : Editor
     {
@@ -199,12 +202,17 @@ namespace PhotocaptureFromCamera
 
         private void OnEnable()
         {
-            string[] fieldNames = Array.ConvertAll(typeof(Photocapture).GetFields(), field => field.Name);
-            foreach (var fieldName in fieldNames)
+            AssignFieldsAccordingToName();
+
+            void AssignFieldsAccordingToName()
             {
-                string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
-                fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
+                string[] fieldNames = Array.ConvertAll(typeof(Photocapture).GetFields(), field => field.Name);
+                foreach (var fieldName in fieldNames)
+                {
+                    string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
+                    FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
+                    fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
+                }
             }
         }
 
@@ -227,6 +235,7 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
 
             EditorGUILayout.PropertyField(lockToTarget, new GUIContent("Lock To Target", "If enabled, the camera will be locked orbit and focus on a target, which you set below."));
+
             if (lockToTarget.boolValue)
                 ShowInInspector(serializedObject, lockTarget);
 
@@ -267,6 +276,9 @@ namespace PhotocaptureFromCamera
         }
     }
 
+    /// <summary>
+    /// The supported resolutions that <see cref="Photocapture"/> supports for image generation.
+    /// </summary>
     public enum Resolution : short
     {
         Res8 = 8,
@@ -280,6 +292,9 @@ namespace PhotocaptureFromCamera
         Res8192 = 8192
     }
 
+    /// <summary>
+    /// The supported filetype (extensions) that <see cref="Photocapture"/> supports for image generation.
+    /// </summary>
     public enum FileType : short
     {
         png,
