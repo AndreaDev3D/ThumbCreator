@@ -13,11 +13,12 @@ namespace PhotocaptureFromCamera
     /// Usage Tips:
     /// - Consider setting up a new "photobooth" scene with manually placed background (or foreground) props.
     /// - If you have a custom background or foreground, it's usually easier to rotate your target manually than to orbit the camera around.
-    /// - To get transparent backgrounds, while in an empty scene set <see cref="CameraClearFlags.Color"/> and then set <see cref="Camera.backgroundColor"/> to maximum alpha.
+    /// - To get transparent backgrounds, while in an empty scene set <see cref="Camera.clearFlags"/> to <see cref="CameraClearFlags.Color"/> and then set <see cref="Camera.backgroundColor"/> to black with max alpha.
     /// - Enable <see cref="UseUnlitShader"/> if you are generating icons for items and don't want to mess with lighting.
     /// - You can doubleclick image files in the Unity Project Explorerer inside the Unity Editor to check the results.
     /// - If you want to unlock the camera from a Target, simply click the circle symbol to the right of Target, and select "None".
     /// - Set the Game View resolution to be whatever your target is to preview your image (not counting transparency).
+    /// - Consider adjusting the <see cref="Camera.fieldOfView"/> to achieve the desired perspective.
     /// </summary>    
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
