@@ -24,7 +24,24 @@ namespace PhotocaptureFromCamera
         public FileType FileType = FileType.png;
 
         public bool LockToTarget = false;
-        public Transform LockTarget;
+
+        [SerializeField]
+        private Transform _lockTarget;
+        public Transform LockTarget
+        {
+            get { return _lockTarget; }
+            set
+            {
+                if (_lockTarget != value)
+                {
+                    DestroyCenterObjectIfNecessary(_lockTarget);
+                    if (LockToTarget)
+                        CenterCamera = false;
+                }
+                _lockTarget = value;
+            }
+        }
+
         public bool UseTargetAsFilename = false;
         public float Distance = 5f;
         public float HorizontalOrbit = 0f;
@@ -32,9 +49,28 @@ namespace PhotocaptureFromCamera
         public bool UseUnlitShader = false;
 
         private bool _centerCamera = false;
-        public bool CenterCamera => _centerCamera;
+        public bool CenterCamera
+        {
+            get => _centerCamera;
+            private set
+            {
+                if (value)
+                    CreateCenterObjectIfNecessary(LockTarget);
+                else
+                    DestroyCenterObjectIfNecessary(LockTarget);
+                _centerCamera = value;
+            }
+        }
 
-        private void OnEnable() => ValidateCameraAndSetTargetIfNeeded();
+        private void OnValidate() => LockTarget = _lockTarget;
+
+        private void OnEnable()
+        {
+            CreateCenterObjectIfNecessary(LockTarget);
+            ValidateCameraAndSetTargetIfNeeded();
+        }
+
+        private void OnDisable() => DestroyCenterObjectIfNecessary(LockTarget);
 
         private void Update() => ValidateCameraAndSetTargetIfNeeded();
 
@@ -42,34 +78,49 @@ namespace PhotocaptureFromCamera
         {
             if (!TryGetComponent<Camera>(out Camera camera))
             {
-                Debug.Log("CameraPhotoCapture component is not attached to a Camera... please fix this...");
+                Debug.Log("ERROR: CameraPhotoCapture component is not attached to a Camera... please fix this...");
                 return;
             }
 
             if (LockToTarget && LockTarget != null)
             {
                 SetCameraPosition(camera,
-                    _centerCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
+                    CenterCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
                     Distance, HorizontalOrbit, VerticalOrbit);
             }
         }
 
         private static void SetCameraPosition(Camera camera, Transform target, float distance, float horizontalOrbit, float verticalOrbit)
         {
-            if (camera != null && target != null)
+            if (camera == null || target == null)
             {
-                camera.transform.position = target.position + new Vector3(0f, 0f, -distance);
-                camera.transform.RotateAround(target.position, target.up, horizontalOrbit);
-                camera.transform.RotateAround(target.position, target.right, verticalOrbit);
-                camera.transform.LookAt(target.position);
+                Debug.Log("ERROR: Camera or target is null... setting camera position failed...");
+                return;
             }
+
+            camera.transform.position = target.position + new Vector3(0f, 0f, distance);
+            camera.transform.RotateAround(target.position, Vector3.up, horizontalOrbit);
+            camera.transform.RotateAround(target.position, target.right, verticalOrbit);
+            camera.transform.LookAt(target.position);
         }
 
         public void CapturePhoto(string filename)
         {
             if (filename.Length == 0)
             {
-                Debug.Log("Filename is empty! Image generation failed...");
+                Debug.Log("ERROR: Filename is empty... image generation failed...");
+                return;
+            }
+
+            if (LockToTarget && LockTarget == null)
+            {
+                Debug.Log("ERROR: No LockTarget despite LockToTarget being enabled... image generation failed...");
+                return;
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                Debug.Log("ERROR: Component is disabled... image generation failed...");
                 return;
             }
 
@@ -156,27 +207,48 @@ namespace PhotocaptureFromCamera
 
         public void ToggleFocusBetweenPivotAndCenter()
         {
-            if (!CenterCamera)
+            if (LockTarget == null)
             {
-                if (LockTarget.TryGetComponent<MeshRenderer>(out var renderer))
+                Debug.Log("No camera target... toggle to center focus failed...");
+                return;
+            }
+
+            if (!isActiveAndEnabled)
+            {
+                Debug.Log("ERROR: Component is disabled... toggle to center focus failed...");
+                return;
+            }
+
+            CenterCamera = !CenterCamera;
+            SceneView.RepaintAll();
+        }
+
+        public static void CreateCenterObjectIfNecessary(Transform target)
+        {
+            if (target != null)
+            {
+                if (target.TryGetComponent<MeshRenderer>(out var renderer))
                 {
-                    var newTarget = new GameObject(LockTarget.name + " Center");
-                    newTarget.transform.position = renderer.bounds.center;
-                    SetCameraPosition(GetComponent<Camera>(), newTarget.transform, Distance, HorizontalOrbit, VerticalOrbit);
+                    var centerObject = GameObject.Find(target.name + " Center");
+                    if (centerObject == null)
+                    {
+                        centerObject = new GameObject(target.name + " Center");
+                        centerObject.transform.position = renderer.bounds.center;
+                    }
                 }
                 else
-                    Debug.Log("MeshRenderer was null! Failed to ToggleFocusPivotToCenter...");
+                    Debug.Log("Target's MeshRenderer was null! Failed to create a \"Center Object\" to focus on...");
             }
-            else
+        }
+
+        public static void DestroyCenterObjectIfNecessary(Transform target)
+        {
+            if (target != null)
             {
-                if (LockTarget != null)
-                {
-                    DestroyImmediate(GameObject.Find(LockTarget.name + " Center"));
-                    SetCameraPosition(GetComponent<Camera>(), LockTarget.transform, Distance, HorizontalOrbit, VerticalOrbit);
-                }
+                var centerObject = GameObject.Find(target.name + " Center");
+                if (centerObject != null)
+                    DestroyImmediate(centerObject);
             }
-            _centerCamera = !_centerCamera;
-            SceneView.RepaintAll();
         }
     }
 
@@ -216,6 +288,8 @@ namespace PhotocaptureFromCamera
                     FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
                     fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
                 }
+                // _lockTarget is a private field, so it's missed by the loop.
+                lockTarget = serializedObject.FindProperty("_lockTarget");
             }
         }
 
