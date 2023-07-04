@@ -8,9 +8,11 @@ namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
-    /// then click "Capture & Save Image". Consider setting up a new "photobooth" scene to do this all in, manually 
-    /// placing background (or foreground) props. For transparent backgrounds, change the Camera component fields: 
-    /// <see cref="CameraClearFlags.Color"/>  and <see cref="Camera.backgroundColor"/> to maximum alpha.
+    /// then click "Capture & Save Image". Consider setting up a new "photobooth" with manually placed background
+    /// (or foreground) props. Also consider changing Camera component fields. To get transparent backgrounds set 
+    /// <see cref="CameraClearFlags.Color"/> to anything, then set <see cref="Camera.backgroundColor"/> 
+    /// to maximum alpha. If you have a custom background or foreground, it's usually easier to rotate your target manually
+    /// than to orbit the camera around.
     /// </summary>
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
