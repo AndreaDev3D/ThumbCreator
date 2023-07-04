@@ -208,7 +208,7 @@ namespace PhotocaptureFromCamera
             SetCameraFocusOnCenter(!cameraFocusedOnCenter);
         }
 
-        public static void CreateCenterObjectIfDoesntExist(Transform target)
+        private static void CreateCenterObjectIfDoesntExist(Transform target)
         {
             if (target != null)
             {
@@ -226,7 +226,7 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        public void DestroyCenterObjectIfExists(Transform target)
+        private void DestroyCenterObjectIfExists(Transform target)
         {
             if (target != null)
             {
