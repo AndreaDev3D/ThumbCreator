@@ -46,7 +46,7 @@ namespace PhotocaptureFromCamera
         private void OnValidate()
         {
             // This is basically a hack to run logic whenever lockTarget changes.
-            // Simply using a property won't work, because they can't be serialized.
+            // Simply using a property won't work, because they can't be serialized...
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
             {
@@ -219,6 +219,7 @@ namespace PhotocaptureFromCamera
                     {
                         centerObject = new GameObject(target.name + " Center");
                         centerObject.transform.position = renderer.bounds.center;
+                        centerObject.transform.parent = target.transform;
                     }
                 }
                 else
@@ -238,7 +239,6 @@ namespace PhotocaptureFromCamera
                     else
                         DestroyImmediate(centerObject);
                 }
-                    
             }
         }
     }
