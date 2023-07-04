@@ -23,85 +23,77 @@ namespace PhotocaptureFromCamera
         public Resolution PhotoResolution = Resolution.Res128;
         public FileType FileType = FileType.png;
 
-        public bool LockToTarget = false;
-
-        [SerializeField]
-        private Transform _lockTarget;
-        public Transform LockTarget
-        {
-            get { return _lockTarget; }
-            set
-            {
-                if (_lockTarget != value)
-                {
-                    DestroyCenterObjectIfNecessary(_lockTarget);
-                    if (LockToTarget)
-                        CenterCamera = false;
-                }
-                _lockTarget = value;
-            }
-        }
+        private Transform previousLockTarget;
+        public Transform LockTarget;
 
         public bool UseTargetAsFilename = false;
-        public float Distance = 5f;
+        public float Distance = 1f;
         public float HorizontalOrbit = 0f;
         public float VerticalOrbit = 0f;
         public bool UseUnlitShader = false;
 
-        private bool _centerCamera = false;
-        public bool CenterCamera
+        private bool cameraFocusedOnCenter = false;
+        public bool GetCameraFocusedOnCenter() => cameraFocusedOnCenter;
+        private void SetCameraFocusOnCenter(bool value)
         {
-            get => _centerCamera;
-            private set
+            if (value)
+                CreateCenterObjectIfDoesntExist(LockTarget);
+            else
+                DestroyCenterObjectIfExists(LockTarget);
+            cameraFocusedOnCenter = value;
+        }
+
+        private void OnValidate()
+        {
+            // This is basically a hack to run logic whenever lockTarget changes.
+            // Simply using a property won't work, because they can't be serialized.
+            bool userSwitchedTargets = LockTarget != previousLockTarget;
+            if (userSwitchedTargets)
             {
-                if (value)
-                    CreateCenterObjectIfNecessary(LockTarget);
-                else
-                    DestroyCenterObjectIfNecessary(LockTarget);
-                _centerCamera = value;
+                EditorApplication.delayCall += () => DestroyCenterObjectIfExists(previousLockTarget);
+                bool previousTargetExisted = previousLockTarget != null;
+                if (previousTargetExisted)
+                    EditorApplication.delayCall += () => SetCameraFocusOnCenter(false);
+
+                bool newTargetIsNull = LockTarget == null;
+                if (newTargetIsNull)
+                {
+                    // Reset these fields.
+                    UseTargetAsFilename = false;
+                    Distance = 1f;
+                    HorizontalOrbit = 0f;
+                    VerticalOrbit = 0f;
+                    SetCameraFocusOnCenter(false);
+                }
+
+                previousLockTarget = LockTarget;
             }
         }
 
-        private void OnValidate() => LockTarget = _lockTarget;
-
         private void OnEnable()
         {
-            CreateCenterObjectIfNecessary(LockTarget);
-            ValidateCameraAndSetTargetIfNeeded();
+            if (cameraFocusedOnCenter)
+                CreateCenterObjectIfDoesntExist(LockTarget);
         }
 
-        private void OnDisable() => DestroyCenterObjectIfNecessary(LockTarget);
+        private void OnDisable() => DestroyCenterObjectIfExists(LockTarget);
 
-        private void Update() => ValidateCameraAndSetTargetIfNeeded();
-
-        private void ValidateCameraAndSetTargetIfNeeded()
+        private void Update()
         {
-            if (!TryGetComponent<Camera>(out Camera camera))
+            if (!TryGetComponent(out Camera camera))
             {
                 Debug.Log("ERROR: CameraPhotoCapture component is not attached to a Camera... please fix this...");
                 return;
             }
 
-            if (LockToTarget && LockTarget != null)
+            if (LockTarget != null)
             {
-                SetCameraPosition(camera,
-                    CenterCamera ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget,
-                    Distance, HorizontalOrbit, VerticalOrbit);
+                Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
+                camera.transform.position = target.position + new Vector3(0f, 0f, Distance);
+                camera.transform.RotateAround(target.position, Vector3.up, HorizontalOrbit);
+                camera.transform.RotateAround(target.position, target.right, VerticalOrbit);
+                camera.transform.LookAt(target.position);
             }
-        }
-
-        private static void SetCameraPosition(Camera camera, Transform target, float distance, float horizontalOrbit, float verticalOrbit)
-        {
-            if (camera == null || target == null)
-            {
-                Debug.Log("ERROR: Camera or target is null... setting camera position failed...");
-                return;
-            }
-
-            camera.transform.position = target.position + new Vector3(0f, 0f, distance);
-            camera.transform.RotateAround(target.position, Vector3.up, horizontalOrbit);
-            camera.transform.RotateAround(target.position, target.right, verticalOrbit);
-            camera.transform.LookAt(target.position);
         }
 
         public void CapturePhoto(string filename)
@@ -112,12 +104,6 @@ namespace PhotocaptureFromCamera
                 return;
             }
 
-            if (LockToTarget && LockTarget == null)
-            {
-                Debug.Log("ERROR: No LockTarget despite LockToTarget being enabled... image generation failed...");
-                return;
-            }
-
             if (!isActiveAndEnabled)
             {
                 Debug.Log("ERROR: Component is disabled... image generation failed...");
@@ -125,7 +111,7 @@ namespace PhotocaptureFromCamera
             }
 
             Texture2D image;
-            if (LockToTarget && UseUnlitShader)
+            if (LockTarget != null && UseUnlitShader)
             {
                 Shader unlit = GetUnlitShader();
                 var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
@@ -209,21 +195,20 @@ namespace PhotocaptureFromCamera
         {
             if (LockTarget == null)
             {
-                Debug.Log("No camera target... toggle to center focus failed...");
+                Debug.Log("No camera target... Center Toggle Focus failed...");
                 return;
             }
 
             if (!isActiveAndEnabled)
             {
-                Debug.Log("ERROR: Component is disabled... toggle to center focus failed...");
+                Debug.Log("ERROR: Component is disabled... Center Toggle Focus failed...");
                 return;
             }
 
-            CenterCamera = !CenterCamera;
-            SceneView.RepaintAll();
+            SetCameraFocusOnCenter(!cameraFocusedOnCenter);
         }
 
-        public static void CreateCenterObjectIfNecessary(Transform target)
+        public static void CreateCenterObjectIfDoesntExist(Transform target)
         {
             if (target != null)
             {
@@ -241,7 +226,7 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        public static void DestroyCenterObjectIfNecessary(Transform target)
+        public void DestroyCenterObjectIfExists(Transform target)
         {
             if (target != null)
             {
@@ -266,7 +251,6 @@ namespace PhotocaptureFromCamera
         private SerializedProperty photoResolution;
         private SerializedProperty fileType;
 
-        private SerializedProperty lockToTarget;
         private SerializedProperty lockTarget;
         private SerializedProperty useTargetAsFilename;
 
@@ -288,8 +272,6 @@ namespace PhotocaptureFromCamera
                     FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
                     fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
                 }
-                // _lockTarget is a private field, so it's missed by the loop.
-                lockTarget = serializedObject.FindProperty("_lockTarget");
             }
         }
 
@@ -300,7 +282,7 @@ namespace PhotocaptureFromCamera
 
             EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
 
-            if (lockToTarget.boolValue == false || useTargetAsFilename.boolValue == false)
+            if (photoCapture.LockTarget == null || useTargetAsFilename.boolValue == false)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
 
             EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
@@ -311,12 +293,9 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
             EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
 
-            EditorGUILayout.PropertyField(lockToTarget, new GUIContent("Lock To Target", "If enabled, the camera will be locked orbit and focus on a target, which you set below."));
+            ShowInInspector(serializedObject, lockTarget, true, new GUIContent("Target", "The target the camera is set to focus and orbit around."));
 
-            if (lockToTarget.boolValue)
-                ShowInInspector(serializedObject, lockTarget);
-
-            if (lockToTarget.boolValue && photoCapture.LockTarget != null)
+            if (photoCapture.LockTarget != null)
             {
                 EditorGUILayout.PropertyField(useTargetAsFilename);
                 EditorGUILayout.Slider(distance, 0, 10, new GUIContent("Target Distance", "The distance the camera is away from the target."));
@@ -328,7 +307,7 @@ namespace PhotocaptureFromCamera
                     photoCapture.ToggleFocusBetweenPivotAndCenter();
 
                 EditorGUILayout.LabelField("Locked to: ",
-                    !photoCapture.CenterCamera ? photoCapture.LockTarget.name : photoCapture.LockTarget.name + " Center");
+                    !photoCapture.GetCameraFocusedOnCenter() ? photoCapture.LockTarget.name : photoCapture.LockTarget.name + " Center");
             }
             else
                 EditorGUILayout.LabelField("Locked to: ", "Nothing");
@@ -337,8 +316,8 @@ namespace PhotocaptureFromCamera
 
             if (GUILayout.Button("Capture & Save Image"))
             {
-                photoCapture.CapturePhoto(photoCapture.UseTargetAsFilename ? photoCapture.LockTarget.name
-                    : photoCapture.Filename);
+                bool useTargetName = photoCapture.LockTarget != null && photoCapture.UseTargetAsFilename;
+                photoCapture.CapturePhoto(useTargetName ? photoCapture.LockTarget.name : photoCapture.Filename);
             }
         }
 
