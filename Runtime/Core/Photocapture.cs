@@ -34,12 +34,12 @@ namespace PhotocaptureFromCamera
 
         private bool cameraFocusedOnCenter = false;
         public bool GetCameraFocusedOnCenter() => cameraFocusedOnCenter;
-        private void SetCameraFocusOnCenter(bool value)
+        private void SetCameraFocusOnCenter(bool value, bool delay)
         {
             if (value)
                 CreateCenterObjectIfDoesntExist(LockTarget);
             else
-                DestroyCenterObjectIfExists(LockTarget);
+                DestroyCenterObjectIfExists(LockTarget, delay);
             cameraFocusedOnCenter = value;
         }
 
@@ -50,10 +50,10 @@ namespace PhotocaptureFromCamera
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
             {
-                EditorApplication.delayCall += () => DestroyCenterObjectIfExists(previousLockTarget);
+                DestroyCenterObjectIfExists(previousLockTarget, true);
                 bool previousTargetExisted = previousLockTarget != null;
                 if (previousTargetExisted)
-                    EditorApplication.delayCall += () => SetCameraFocusOnCenter(false);
+                    SetCameraFocusOnCenter(false, true);
 
                 bool newTargetIsNull = LockTarget == null;
                 if (newTargetIsNull)
@@ -63,7 +63,7 @@ namespace PhotocaptureFromCamera
                     Distance = 1f;
                     HorizontalOrbit = 0f;
                     VerticalOrbit = 0f;
-                    SetCameraFocusOnCenter(false);
+                    SetCameraFocusOnCenter(false, true);
                 }
 
                 previousLockTarget = LockTarget;
@@ -76,7 +76,7 @@ namespace PhotocaptureFromCamera
                 CreateCenterObjectIfDoesntExist(LockTarget);
         }
 
-        private void OnDisable() => DestroyCenterObjectIfExists(LockTarget);
+        private void OnDisable() => DestroyCenterObjectIfExists(LockTarget, false);
 
         private void Update()
         {
@@ -205,7 +205,7 @@ namespace PhotocaptureFromCamera
                 return;
             }
 
-            SetCameraFocusOnCenter(!cameraFocusedOnCenter);
+            SetCameraFocusOnCenter(!cameraFocusedOnCenter, false);
         }
 
         private static void CreateCenterObjectIfDoesntExist(Transform target)
@@ -226,13 +226,19 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        private void DestroyCenterObjectIfExists(Transform target)
+        private void DestroyCenterObjectIfExists(Transform target, bool delay)
         {
             if (target != null)
             {
                 var centerObject = GameObject.Find(target.name + " Center");
                 if (centerObject != null)
-                    DestroyImmediate(centerObject);
+                {
+                    if (delay)
+                        EditorApplication.delayCall += () => DestroyImmediate(centerObject);
+                    else
+                        DestroyImmediate(centerObject);
+                }
+                    
             }
         }
     }
