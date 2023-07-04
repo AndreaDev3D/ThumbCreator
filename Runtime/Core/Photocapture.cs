@@ -8,11 +8,11 @@ namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
-    /// then click "Capture & Save Image". Consider setting up a new "photobooth" with manually placed background
+    /// then click "Capture & Save Image". Consider setting up a new "photobooth" scene with manually placed background
     /// (or foreground) props. Also consider changing Camera component fields. To get transparent backgrounds set 
-    /// <see cref="CameraClearFlags.Color"/> to anything, then set <see cref="Camera.backgroundColor"/> 
-    /// to maximum alpha. If you have a custom background or foreground, it's usually easier to rotate your target manually
-    /// than to orbit the camera around.
+    /// <see cref="CameraClearFlags.Color"/>, then set <see cref="Camera.backgroundColor"/> to maximum alpha.
+    /// If you have a custom background or foreground, it's usually easier to rotate your target manually than to orbit
+    /// the camera around.
     /// </summary>
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -91,7 +91,12 @@ namespace PhotocaptureFromCamera
             if (LockTarget != null)
             {
                 Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
-                camera.transform.position = target.position + new Vector3(0f, 0f, Distance);
+
+                if (LockTarget.TryGetComponent<Renderer>(out var renderer))
+                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.extents.magnitude);
+                else
+                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance);
+
                 camera.transform.RotateAround(target.position, Vector3.up, HorizontalOrbit);
                 camera.transform.RotateAround(target.position, target.right, VerticalOrbit);
                 camera.transform.LookAt(target.position);
@@ -277,7 +282,8 @@ namespace PhotocaptureFromCamera
                 foreach (var fieldName in fieldNames)
                 {
                     string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                    FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase, BindingFlags.NonPublic | BindingFlags.Instance);
+                    FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase,
+                        bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance);
                     fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
                 }
             }
@@ -306,7 +312,7 @@ namespace PhotocaptureFromCamera
             if (photoCapture.LockTarget != null)
             {
                 EditorGUILayout.PropertyField(useTargetAsFilename);
-                EditorGUILayout.Slider(distance, 0, 10, new GUIContent("Target Distance", "The distance the camera is away from the target."));
+                EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
                 EditorGUILayout.Slider(horizontalOrbit, -180f, 180f, new GUIContent("Horizontal Orbit Angle", "The angle to orbit around the target horizontally."));
                 EditorGUILayout.Slider(verticalOrbit, -180f, 180f, new GUIContent("Vertical Orbit Angle", "The angle to orbit around the target vertically."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
