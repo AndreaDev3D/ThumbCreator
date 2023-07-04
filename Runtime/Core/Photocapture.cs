@@ -17,6 +17,7 @@ namespace PhotocaptureFromCamera
     /// - Enable <see cref="UseUnlitShader"/> if you are generating icons for items and don't want to mess with lighting.
     /// - You can doubleclick image files in the Unity Project Explorerer inside the Unity Editor to check the results.
     /// - If you want to unlock the camera from a Target, simply click the circle symbol to the right of Target, and select "None".
+    /// - Set the Game View resolution to be whatever your target is to preview your image (not counting transparency).
     /// </summary>    
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -25,7 +26,7 @@ namespace PhotocaptureFromCamera
         public string SaveDirectory;
         public string Filename;
         public bool OverwriteFile = false;
-        public string PostfixDelimiter;
+        public string PostfixDelimiter; // TODO: Input validation on PostfixDelimiter (no . / or \)
         public Resolution PhotoResolution = Resolution.Res128;
         public FileType FileType = FileType.png;
 
@@ -94,7 +95,6 @@ namespace PhotocaptureFromCamera
             if (LockTarget != null)
             {
                 Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
-                camera.transform.LookAt(target.position);
 
                 if (LockTarget.TryGetComponent<Renderer>(out var renderer))
                     camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.extents.magnitude);
@@ -103,6 +103,7 @@ namespace PhotocaptureFromCamera
 
                 camera.transform.RotateAround(target.position, Vector3.up, HorizontalOrbit);
                 camera.transform.RotateAround(target.position, target.right, VerticalOrbit);
+                camera.transform.LookAt(target.position);
             }
         }
 
