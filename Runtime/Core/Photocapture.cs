@@ -8,12 +8,16 @@ namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
-    /// then click "Capture & Save Image". Consider setting up a new "photobooth" scene with manually placed background
-    /// (or foreground) props. Also consider changing Camera component fields. To get transparent backgrounds set 
-    /// <see cref="CameraClearFlags.Color"/>, then set <see cref="Camera.backgroundColor"/> to maximum alpha.
-    /// If you have a custom background or foreground, it's usually easier to rotate your target manually than to orbit
-    /// the camera around.
-    /// </summary>
+    /// then click "Capture & Save Image". 
+    /// 
+    /// Usage Tips:
+    /// - Consider setting up a new "photobooth" scene with manually placed background (or foreground) props.
+    /// - If you have a custom background or foreground, it's usually easier to rotate your target manually than to orbit the camera around.
+    /// - To get transparent backgrounds, while in an empty scene set <see cref="CameraClearFlags.Color"/> and then set <see cref="Camera.backgroundColor"/> to maximum alpha.
+    /// - Enable <see cref="UseUnlitShader"/> if you are generating icons for items and don't want to mess with lighting.
+    /// - You can doubleclick image files in the Unity Project Explorerer inside the Unity Editor to check the results.
+    /// - If you want to unlock the camera from a Target, simply click the circle symbol to the right of Target, and select "None".
+    /// </summary>    
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
     {
@@ -60,7 +64,6 @@ namespace PhotocaptureFromCamera
                 bool newTargetIsNull = LockTarget == null;
                 if (newTargetIsNull)
                 {
-                    // Reset these fields.
                     UseTargetAsFilename = false;
                     Distance = 1f;
                     HorizontalOrbit = 0f;
@@ -91,6 +94,7 @@ namespace PhotocaptureFromCamera
             if (LockTarget != null)
             {
                 Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
+                camera.transform.LookAt(target.position);
 
                 if (LockTarget.TryGetComponent<Renderer>(out var renderer))
                     camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.extents.magnitude);
@@ -99,7 +103,6 @@ namespace PhotocaptureFromCamera
 
                 camera.transform.RotateAround(target.position, Vector3.up, HorizontalOrbit);
                 camera.transform.RotateAround(target.position, target.right, VerticalOrbit);
-                camera.transform.LookAt(target.position);
             }
         }
 
@@ -118,6 +121,7 @@ namespace PhotocaptureFromCamera
             }
 
             Texture2D image;
+
             if (LockTarget != null && UseUnlitShader)
             {
                 Shader unlit = GetUnlitShader();
@@ -166,11 +170,11 @@ namespace PhotocaptureFromCamera
                     Camera.main.Render();
                 }
 
-                static Texture2D ReadPixelsToTexture(int res)
+                static Texture2D ReadPixelsToTexture(int resolution)
                 {
                     // Pixels are read from RenderTexture.active.
-                    var texture = new Texture2D(res, res);
-                    texture.ReadPixels(new Rect(0, 0, res, res), 0, 0);
+                    var texture = new Texture2D(resolution, resolution);
+                    texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
                     texture.Apply();
                     return texture;
                 }
@@ -296,7 +300,7 @@ namespace PhotocaptureFromCamera
 
             EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
 
-            if (photoCapture.LockTarget == null || useTargetAsFilename.boolValue == false)
+            if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
 
             EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
