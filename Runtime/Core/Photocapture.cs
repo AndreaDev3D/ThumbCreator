@@ -28,7 +28,7 @@ namespace PhotocaptureFromCamera
         public string Filename;
         public string FilenamePostfix;
         public bool OverwriteFile = false;
-        public string PostfixDelimiter; // TODO: Input validation on PostfixDelimiter (no . / or \)
+        public string NumberingDelimiter; // TODO: Input validation on PostfixDelimiter (no . / or \)
         public Resolution PhotoResolution = Resolution.Res128;
         public FileType FileType = FileType.png;
 
@@ -157,7 +157,7 @@ namespace PhotocaptureFromCamera
             else
                 image = GenerateImage((int)PhotoResolution);
 
-            SaveToFile(image, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, PostfixDelimiter);
+            SaveToFile(image, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
 
             static Texture2D GenerateImage(int resolution)
             {
@@ -272,7 +272,7 @@ namespace PhotocaptureFromCamera
         private SerializedProperty filename;
         private SerializedProperty filenamePostfix;
         private SerializedProperty overwriteFile;
-        private SerializedProperty postfixDelimiter;
+        private SerializedProperty numberingDelimiter;
         private SerializedProperty photoResolution;
         private SerializedProperty fileType;
 
@@ -317,7 +317,7 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
 
             if (!overwriteFile.boolValue)
-                EditorGUILayout.PropertyField(postfixDelimiter, new GUIContent("Postfix Delimiter", "The delimiter to append to the filename when generating a unique filename."));
+                EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme."));
 
             EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
             EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
