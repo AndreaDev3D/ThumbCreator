@@ -8,9 +8,8 @@ using UnityEngine.UI;
 namespace PhotocaptureFromCamera
 {
     /// <summary>
-    /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
-    /// then click "Capture & Save Image". 
-    /// 
+    /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, then click "Capture & Save Image". 
+    ///     /// 
     /// Advanced Usage Tips:
     /// - Consider setting up a new "photobooth" scene with manually placed background (or foreground) props.
     /// - If you have a target, you can rotate it around to take photos from different angles.
@@ -319,6 +318,14 @@ namespace PhotocaptureFromCamera
     [CustomEditor(typeof(Photocapture))]
     public class PhotocaptureEditor : Editor
     {
+        private bool showInstructions = false;
+        private const string instructions =
+            "- Consider setting up a new 'photobooth' scene with manually placed background (or foreground) props.\n" +
+            "- If you have a target, you can rotate it around to take photos from different angles.\n" +
+            "- To get transparent backgrounds, while in an empty scene set Camera's ClearFlag to Color, then set color to black with max alpha.\n" +
+            "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n" +
+            "- Consider adjusting the Camera's FieldOfView to achieve the desired perspective.";
+
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
         private SerializedProperty filenamePostfix;
@@ -388,6 +395,11 @@ namespace PhotocaptureFromCamera
                 bool useTargetName = photoCapture.LockTarget != null && photoCapture.UseTargetAsFilename;
                 photoCapture.CapturePhoto(useTargetName ? photoCapture.LockTarget.name : photoCapture.Filename);
             }
+
+            EditorGUILayout.Space();
+            showInstructions = EditorGUILayout.Foldout(showInstructions, "Usage Tips:", true);
+            if (showInstructions)
+                EditorGUILayout.HelpBox(instructions, MessageType.Info);
         }
     }
 
