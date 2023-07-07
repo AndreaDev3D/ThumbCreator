@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using static ThumbCreator.Enumerators;
 
 namespace PhotocaptureFromCamera
 {
@@ -46,20 +47,18 @@ namespace PhotocaptureFromCamera
 
         private bool cameraFocusedOnCenter = false;
         public bool GetCameraFocusedOnCenter() => cameraFocusedOnCenter;
-        private void SetCameraFocusOnCenter(bool value, bool delay)
+        private void SetCameraFocusOnCenter(bool value, bool delayDestruction)
         {
             if (value)
                 CreateCenterObjectIfDoesntExist(LockTarget);
             else
-                DestroyCenterObjectIfExists(LockTarget, delay);
+                DestroyCenterObjectIfExists(LockTarget, delayDestruction);
             cameraFocusedOnCenter = value;
         }
 
         // These are for showing a preview image.
         private RawImage previewImage;
         private Canvas canvas;
-        private RenderTexture previewRenderTexture;
-        private Camera previewCamera;
 
         private void OnValidate()
         {
@@ -98,32 +97,23 @@ namespace PhotocaptureFromCamera
 
             void CreatePreviewImageInfrastructure()
             {
-                GameObject previewCameraObject = new GameObject("Preview Camera");
-                previewCamera = previewCameraObject.AddComponent<Camera>();
-                previewCamera.enabled = false;
-                previewRenderTexture = new RenderTexture((int)PhotoResolution, (int)PhotoResolution, 24);
-
-                // Check if a canvas already exists
                 canvas = FindObjectOfType<Canvas>();
                 if (canvas == null)
                 {
-                    // Create a new canvas
-                    var canvasGO = new GameObject("Photocapture Preview Canvas");
+                    GameObject canvasGO = new("Photocapture Preview Canvas");
                     canvas = canvasGO.AddComponent<Canvas>();
                     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                     canvasGO.AddComponent<CanvasScaler>();
-                    canvasGO.AddComponent<GraphicRaycaster>();
                 }
 
-                // Create the RawImage component and set its properties
-                var rawImageGO = new GameObject("Photocapture Preview Image");
+                GameObject rawImageGO = new("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
                 rawImageTransform.anchorMin = new Vector2(1f, 0f);
                 rawImageTransform.anchorMax = new Vector2(1f, 0f);
                 rawImageTransform.pivot = new Vector2(1f, 0f);
                 rawImageTransform.anchoredPosition = new Vector2(-10f, 10f); // Adjust the position as desired
-                rawImageTransform.sizeDelta = new Vector2(200f, 200f); // Adjust the size as desired
+                rawImageTransform.sizeDelta = new Vector2(500f, 500f); // Adjust the size as desired
                 previewImage = rawImageGO.AddComponent<RawImage>();
             }
         }
@@ -131,23 +121,9 @@ namespace PhotocaptureFromCamera
         private void OnDisable()
         {
             DestroyCenterObjectIfExists(LockTarget, false);
+            DestroyPreviewImageInfrastructureIfExists();
 
-            // TODO: Make this consistent with OnEnable.
-            if (previewRenderTexture != null)
-            {
-                previewRenderTexture.Release();
-                DestroyImmediate(previewRenderTexture);
-                previewRenderTexture = null;
-            }
-
-            if (previewCamera != null)
-            {
-                DestroyImmediate(previewCamera.gameObject);
-                previewCamera = null;
-            }
-            DestroyPreviewImageGUI();
-
-            void DestroyPreviewImageGUI()
+            void DestroyPreviewImageInfrastructureIfExists()
             {
                 if (canvas != null)
                 {
@@ -167,7 +143,7 @@ namespace PhotocaptureFromCamera
 
         private void Update()
         {
-            if (!TryGetComponent(out Camera camera)) // Is this needed?... I am using Camera.main...
+            if (!TryGetComponent(out Camera camera))
             {
                 Debug.Log("ERROR: CameraPhotoCapture component is not attached to a Camera... please fix this...");
                 return;
@@ -188,13 +164,18 @@ namespace PhotocaptureFromCamera
                 camera.transform.position += Offset;
             }
 
-            // TODO: Wrap this in a name.
-            previewCamera.CopyFrom(camera);
-            RenderCameraToTexture(previewCamera, previewRenderTexture);
-            previewImage.texture = ReadPixelsToTexture((int)PhotoResolution);
+            if (LockTarget != null && UseUnlitShader)
+            {
+                Shader unlit = GetUnlitShader();
+                var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
+                Shader original = targetsRenderer.sharedMaterial.shader;
+                targetsRenderer.material.shader = unlit;
+                previewImage.texture = GenerateImage(Camera.main, (int)PhotoResolution);
+                targetsRenderer.sharedMaterial.shader = original;
+            }
+            else
+                previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
         }
-
-
 
         public void CapturePhoto(string filename)
         {
@@ -211,7 +192,6 @@ namespace PhotocaptureFromCamera
             }
 
             Texture2D image;
-
             if (LockTarget != null && UseUnlitShader)
             {
                 Shader unlit = GetUnlitShader();
@@ -220,38 +200,11 @@ namespace PhotocaptureFromCamera
                 targetsRenderer.material.shader = unlit;
                 image = GenerateImage(Camera.main, (int)PhotoResolution);
                 targetsRenderer.sharedMaterial.shader = original;
-
-                static Shader GetUnlitShader()
-                {
-                    string shaderName = "HDRP/UnLit";
-                    Shader shader = Shader.Find(shaderName);
-                    if (shader == null)
-                    {
-                        shaderName = "Universal Render Pipeline/Unlit";
-                        shader = Shader.Find(shaderName);
-                        if (shader == null)
-                        {
-                            shaderName = "Unlit/Texture";
-                            shader = Shader.Find(shaderName);
-                        }
-                    }
-                    return shader;
-                }
             }
             else
                 image = GenerateImage(Camera.main, (int)PhotoResolution);
 
             SaveToFile(image, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
-
-            static Texture2D GenerateImage(Camera camera, int resolution)
-            {
-                var renderTexture = new RenderTexture(resolution, resolution, 32);
-                RenderCameraToTexture(camera, renderTexture);
-                Texture2D image = ReadPixelsToTexture(resolution);
-                RenderCameraToTexture(camera, null);
-                DestroyImmediate(renderTexture);
-                return image;
-            }
 
             static void SaveToFile(Texture2D texture, string path, string filename, FileType filetype,
                 bool overwriteFile, string postfixDelimiter)
@@ -276,21 +229,49 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        static void RenderCameraToTexture(Camera camera, RenderTexture texture)
+        private static Texture2D GenerateImage(Camera camera, int resolution)
         {
-            // If texture is null, it renders to Main Window.
-            camera.targetTexture = texture;
-            RenderTexture.active = texture;
-            camera.Render();
+            var renderTexture = new RenderTexture(resolution, resolution, 32);
+            RenderCameraToTexture(camera, renderTexture);
+            Texture2D image = ReadPixelsToTexture(resolution);
+            RenderCameraToTexture(camera, null);
+            DestroyImmediate(renderTexture);
+
+            return image;
+
+            static Texture2D ReadPixelsToTexture(int resolution)
+            {
+                // Pixels are read from RenderTexture.active.
+                var texture = new Texture2D(resolution, resolution);
+                texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+                texture.Apply();
+                return texture;
+            }
+
+            static void RenderCameraToTexture(Camera camera, RenderTexture texture) 
+            {
+                // If texture is null, it renders to Main Window.
+                camera.targetTexture = texture;
+                RenderTexture.active = texture;
+                camera.Render();
+            }
         }
 
-        private static Texture2D ReadPixelsToTexture(int resolution)
+        private static Shader GetUnlitShader()
         {
-            // Pixels are read from RenderTexture.active.
-            var texture = new Texture2D(resolution, resolution);
-            texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
-            texture.Apply();
-            return texture;
+            string shaderName = "HDRP/UnLit";
+            Shader shader = Shader.Find(shaderName);
+            if (shader == null)
+            {
+                shaderName = "Universal Render Pipeline/Unlit";
+                shader = Shader.Find(shaderName);
+                if (shader == null)
+                {
+                    shaderName = "Unlit/Texture";
+                    shader = Shader.Find(shaderName);
+                }
+            }
+            return shader;
         }
 
         public void ToggleFocusBetweenPivotAndCenter()
@@ -330,14 +311,14 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        private void DestroyCenterObjectIfExists(Transform target, bool delay)
+        private static void DestroyCenterObjectIfExists(Transform target, bool delayDestruction)
         {
             if (target != null)
             {
                 var centerObject = GameObject.Find(target.name + " Center");
                 if (centerObject != null)
                 {
-                    if (delay)
+                    if (delayDestruction)
                         EditorApplication.delayCall += () => DestroyImmediate(centerObject);
                     else
                         DestroyImmediate(centerObject);
