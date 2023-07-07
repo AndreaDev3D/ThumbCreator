@@ -188,16 +188,17 @@ namespace PhotocaptureFromCamera
             static void SaveToFile(Texture2D texture, string path, string filename, FileType filetype,
                 bool overwriteFile, string postfixDelimiter)
             {
-                string unityPath = Path.Combine("Assets", path);
-                string fullPath = Path.Combine(unityPath, filename + "." + filetype.ToString());
+                PhotoImporter.SaveDirectory = "Assets/" + path;
+                string assetsPath = Path.Combine("Assets", path);
+                string fullPath = Path.Combine(assetsPath, filename + "." + filetype.ToString());
                 byte[] bytes = texture.EncodeToPNG();
-                Directory.CreateDirectory(unityPath);
+                Directory.CreateDirectory(assetsPath);
                 if (File.Exists(fullPath) && !overwriteFile)
                 {
                     int counter = 1;
                     while (File.Exists(fullPath))
                     {
-                        fullPath = Path.Combine(unityPath, filename + postfixDelimiter + counter + "." + filetype);
+                        fullPath = Path.Combine(assetsPath, filename + postfixDelimiter + counter + "." + filetype);
                         counter++;
                     }
                 }
@@ -354,6 +355,23 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.PropertyField(property, label, includeChildren);
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
+        }
+    }
+
+    /// <summary>
+    /// This class's SaveDirectory is overwritten by Photocapture. It does not need to be instantiated to be used.
+    /// </summary>
+    public class PhotoImporter : AssetPostprocessor
+    {
+        public static string SaveDirectory;
+
+        private void OnPreprocessTexture()
+        {
+            if (assetPath.StartsWith(SaveDirectory))
+            {
+                var textureImporter = assetImporter as TextureImporter;
+                textureImporter.alphaIsTransparency = true;
+            }
         }
     }
 
