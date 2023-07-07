@@ -26,6 +26,7 @@ namespace PhotocaptureFromCamera
         // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
         public string SaveDirectory;
         public string Filename;
+        public string FilenamePostfix;
         public bool OverwriteFile = false;
         public string PostfixDelimiter; // TODO: Input validation on PostfixDelimiter (no . / or \)
         public Resolution PhotoResolution = Resolution.Res128;
@@ -156,7 +157,7 @@ namespace PhotocaptureFromCamera
             else
                 image = GenerateImage((int)PhotoResolution);
 
-            SaveToFile(image, SaveDirectory, filename, FileType, OverwriteFile, PostfixDelimiter);
+            SaveToFile(image, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, PostfixDelimiter);
 
             static Texture2D GenerateImage(int resolution)
             {
@@ -269,6 +270,7 @@ namespace PhotocaptureFromCamera
     {
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
+        private SerializedProperty filenamePostfix;
         private SerializedProperty overwriteFile;
         private SerializedProperty postfixDelimiter;
         private SerializedProperty photoResolution;
@@ -309,6 +311,8 @@ namespace PhotocaptureFromCamera
 
             if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
+
+            EditorGUILayout.PropertyField(filenamePostfix, new GUIContent("Filename Postfix", "The postfix appended to the end of the filename, e.g., _icon, -icon, etc."));
 
             EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
 
