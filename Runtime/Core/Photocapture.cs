@@ -35,6 +35,7 @@ namespace PhotocaptureFromCamera
         public Transform LockTarget;
 
         public bool UseTargetAsFilename = false;
+        public Vector3 Offset;
         public float Distance = 1f;
         public float HorizontalOrbit = 0f;
         public float VerticalOrbit = 0f;
@@ -67,6 +68,7 @@ namespace PhotocaptureFromCamera
                 if (newTargetIsNull)
                 {
                     UseTargetAsFilename = false;
+                    Offset = Vector3.zero;
                     Distance = 1f;
                     HorizontalOrbit = 0f;
                     VerticalOrbit = 0f;
@@ -105,6 +107,7 @@ namespace PhotocaptureFromCamera
                 camera.transform.RotateAround(target.position, Vector3.up, HorizontalOrbit);
                 camera.transform.RotateAround(target.position, target.right, VerticalOrbit);
                 camera.transform.LookAt(target.position);
+                camera.transform.position += Offset;
             }
         }
 
@@ -273,6 +276,7 @@ namespace PhotocaptureFromCamera
         private SerializedProperty lockTarget;
         private SerializedProperty useTargetAsFilename;
 
+        private SerializedProperty offset;
         private SerializedProperty distance;
         private SerializedProperty horizontalOrbit;
         private SerializedProperty verticalOrbit;
@@ -318,6 +322,7 @@ namespace PhotocaptureFromCamera
             if (photoCapture.LockTarget != null)
             {
                 EditorGUILayout.PropertyField(useTargetAsFilename);
+                EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
                 EditorGUILayout.Slider(horizontalOrbit, -180f, 180f, new GUIContent("Horizontal Orbit Angle", "The angle to orbit around the target horizontally."));
                 EditorGUILayout.Slider(verticalOrbit, -180f, 180f, new GUIContent("Vertical Orbit Angle", "The angle to orbit around the target vertically."));
