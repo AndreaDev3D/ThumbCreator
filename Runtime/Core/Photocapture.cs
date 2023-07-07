@@ -52,14 +52,15 @@ namespace PhotocaptureFromCamera
             // Maybe I could be doing this instead:
             // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
-            if (userSwitchedTargets && isActiveAndEnabled)
+            if (userSwitchedTargets)
             {
                 UpdateLockTargetCenter();
 
                 void UpdateLockTargetCenter()
                 {
                     DestroyCenterObjectIfExists(previousLockTarget, true);
-                    lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter, true);
+                    EditorApplication.delayCall += () =>
+                        lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
                 }
 
                 bool newTargetIsNull = LockTarget == null;
@@ -80,7 +81,7 @@ namespace PhotocaptureFromCamera
         private void OnEnable()
         {
             if (LockTarget != null)
-                lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter, false);
+                lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
 
             CreatePreviewImageInfrastructure();
 
@@ -172,7 +173,6 @@ namespace PhotocaptureFromCamera
                     camera.transform.position = lockTargetCenter.transform.position 
                         + new Vector3(0f, 0f, Distance);
                 }
-
                 camera.transform.LookAt(lockTargetCenter.transform.position);
                 camera.transform.position += Offset;
             }
@@ -279,7 +279,7 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        private static GameObject CreateCenterObjectIfDoesntExist(Transform target, GameObject center, bool delayCreation)
+        private static GameObject CreateCenterObjectIfDoesntExist(Transform target, GameObject center)
         {
             if (target == null)
                 return null;
@@ -288,17 +288,9 @@ namespace PhotocaptureFromCamera
             {
                 if (center == null || center.name != target.name + CenterNamePostfixConvention)
                 {
-                    if (delayCreation)
-                        EditorApplication.delayCall += () => CreateNewCenterObject();
-                    else
-                        CreateNewCenterObject();
-
-                    void CreateNewCenterObject()
-                    {
-                        center = new GameObject(target.name + CenterNamePostfixConvention);
-                        center.transform.position = renderer.bounds.center;
-                        center.transform.parent = target.transform;
-                    }
+                    center = new GameObject(target.name + CenterNamePostfixConvention);
+                    center.transform.position = renderer.bounds.center;
+                    center.transform.parent = target.transform;
                 }
             }
             else
