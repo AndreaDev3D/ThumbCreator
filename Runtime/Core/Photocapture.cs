@@ -37,8 +37,8 @@ namespace PhotocaptureFromCamera
         public Transform LockTarget;
 
         public bool UseTargetAsFilename = false;
-        public Vector3 Offset;
-        public float Distance = 1f;
+        public Vector3 Offset = Vector3.zero;
+        public float Distance = 0f;
         public bool UseUnlitShader = false;
 
         private bool cameraFocusedOnCenter = false;
@@ -80,7 +80,7 @@ namespace PhotocaptureFromCamera
                 {
                     UseTargetAsFilename = false;
                     Offset = Vector3.zero;
-                    Distance = 1f;
+                    Distance = 0f;
                     SetCameraFocusOnCenter(false, true);
                 }
             }
@@ -158,7 +158,7 @@ namespace PhotocaptureFromCamera
                 Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
 
                 if (LockTarget.TryGetComponent<Renderer>(out var renderer))
-                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.extents.magnitude);
+                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.size.magnitude);
                 else
                     camera.transform.position = target.position + new Vector3(0f, 0f, Distance);
 
