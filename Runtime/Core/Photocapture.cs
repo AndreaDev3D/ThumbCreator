@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Codice.Client.Common.GameUI;
+using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
@@ -6,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using static ThumbCreator.Enumerators;
+using static UnityEngine.GraphicsBuffer;
 
 namespace PhotocaptureFromCamera
 {
@@ -62,8 +64,10 @@ namespace PhotocaptureFromCamera
 
         private void OnValidate()
         {
-            // This is basically a hack to run logic whenever lockTarget changes.
-            // Simply using a property won't work, because they can't be serialized...
+            // This is basically a hack to run logic whenever lockTarget changes. Simply using a property or custom 
+            // setter won't work, because they don't work nicely with with EditorGUILayout updates... (I think).
+            // Maybe I could be doing this instead:
+            // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
             {
@@ -74,8 +78,12 @@ namespace PhotocaptureFromCamera
 
                 bool newTargetIsNull = LockTarget == null;
                 if (newTargetIsNull)
+                    ResetTargetDependentState();
+
+                previousLockTarget = LockTarget;
+
+                void ResetTargetDependentState()
                 {
-                    // Reset fields.
                     UseTargetAsFilename = false;
                     Offset = Vector3.zero;
                     Distance = 1f;
@@ -83,8 +91,6 @@ namespace PhotocaptureFromCamera
                     VerticalOrbit = 0f;
                     SetCameraFocusOnCenter(false, true);
                 }
-
-                previousLockTarget = LockTarget;
             }
         }
 
@@ -150,6 +156,11 @@ namespace PhotocaptureFromCamera
             }
 
             if (LockTarget != null)
+                LockToAndOrbitTarget();
+
+            UpdateImagePreview();
+
+            void LockToAndOrbitTarget()
             {
                 Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
 
@@ -164,17 +175,20 @@ namespace PhotocaptureFromCamera
                 camera.transform.position += Offset;
             }
 
-            if (LockTarget != null && UseUnlitShader)
+            void UpdateImagePreview()
             {
-                Shader unlit = GetUnlitShader();
-                var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
-                Shader original = targetsRenderer.sharedMaterial.shader;
-                targetsRenderer.material.shader = unlit;
-                previewImage.texture = GenerateImage(Camera.main, (int)PhotoResolution);
-                targetsRenderer.sharedMaterial.shader = original;
+                if (LockTarget != null && UseUnlitShader)
+                {
+                    Shader unlit = GetUnlitShader();
+                    var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
+                    Shader original = targetsRenderer.sharedMaterial.shader;
+                    targetsRenderer.sharedMaterial.shader = unlit;
+                    previewImage.texture = GenerateImage(Camera.main, (int)PhotoResolution);
+                    targetsRenderer.sharedMaterial.shader = original;
+                }
+                else
+                    previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
             }
-            else
-                previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
         }
 
         public void CapturePhoto(string filename)
@@ -191,28 +205,29 @@ namespace PhotocaptureFromCamera
                 return;
             }
 
-            Texture2D image;
-            if (LockTarget != null && UseUnlitShader)
-            {
-                Shader unlit = GetUnlitShader();
-                var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
-                Shader original = targetsRenderer.sharedMaterial.shader;
-                targetsRenderer.material.shader = unlit;
-                image = GenerateImage(Camera.main, (int)PhotoResolution);
-                targetsRenderer.sharedMaterial.shader = original;
-            }
-            else
-                image = GenerateImage(Camera.main, (int)PhotoResolution);
+            //Texture2D image;
+            //if (LockTarget != null && UseUnlitShader)
+            //{
+            //    Shader unlit = GetUnlitShader();
+            //    var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
+            //    Shader original = targetsRenderer.sharedMaterial.shader;
+            //    targetsRenderer.sharedMaterial.shader = unlit;
+            //    image = GenerateImage(Camera.main, (int)PhotoResolution);
+            //    targetsRenderer.sharedMaterial.shader = original;
+            //}
+            //else
+            //    image = GenerateImage(Camera.main, (int)PhotoResolution);
 
-            SaveToFile(image, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
+            SaveToFile(previewImage.texture, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
 
-            static void SaveToFile(Texture2D texture, string path, string filename, FileType filetype,
+            static void SaveToFile(Texture texture, string path, string filename, FileType filetype,
                 bool overwriteFile, string postfixDelimiter)
             {
+                var texture2D = texture as Texture2D;
                 PhotoImporter.SaveDirectory = "Assets/" + path;
                 string assetsPath = Path.Combine("Assets", path);
                 string fullPath = Path.Combine(assetsPath, filename + "." + filetype.ToString());
-                byte[] bytes = texture.EncodeToPNG();
+                byte[] bytes = texture2D.EncodeToPNG();
                 Directory.CreateDirectory(assetsPath);
                 if (File.Exists(fullPath) && !overwriteFile)
                 {
@@ -417,6 +432,7 @@ namespace PhotocaptureFromCamera
             }
         }
 
+        // TODO: Maybe I should just be doing EditorGUILayout.ObjectField (lol).
         private static void ShowInInspector(SerializedObject serializedObject, SerializedProperty property,
             bool includeChildren = true, GUIContent label = null)
         {
