@@ -11,15 +11,12 @@ namespace PhotocaptureFromCamera
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, 
     /// then click "Capture & Save Image". 
     /// 
-    /// Usage Tips:
+    /// Advanced Usage Tips:
     /// - Consider setting up a new "photobooth" scene with manually placed background (or foreground) props.
-    /// - If you have a custom background or foreground, it's usually easier to rotate your target manually than to orbit the camera around.
-    /// - To get transparent backgrounds, while in an empty scene set <see cref="Camera.clearFlags"/> to <see cref="CameraClearFlags.Color"/> and then set <see cref="Camera.backgroundColor"/> to black with max alpha.
-    /// - Enable <see cref="UseUnlitShader"/> if you are generating icons for items and don't want to mess with lighting.
-    /// - You can doubleclick image files in the Unity Project Explorerer inside the Unity Editor to check the results.
-    /// - If you want to unlock the camera from a Target, simply click the circle symbol to the right of Target, and select "None".
-    /// - Set the Game View resolution to be whatever your target is to preview your image (not counting transparency).
-    /// - Consider adjusting the <see cref="Camera.fieldOfView"/> to achieve the desired perspective.
+    /// - If you have a target, you can rotate it around to take photos from different angles.
+    /// - To get transparent backgrounds, while in an empty scene set Camera's ClearFlag to Color, then set color to black with max alpha.
+    /// - Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.
+    /// - Consider adjusting the Camera's FieldOfView to achieve the desired perspective.
     /// </summary>    
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -165,12 +162,12 @@ namespace PhotocaptureFromCamera
             {
                 if (LockTarget.TryGetComponent<Renderer>(out var renderer))
                 {
-                    camera.transform.position = lockTargetCenter.transform.position 
+                    camera.transform.position = lockTargetCenter.transform.position
                         + new Vector3(0f, 0f, Distance + renderer.bounds.size.magnitude);
                 }
                 else
                 {
-                    camera.transform.position = lockTargetCenter.transform.position 
+                    camera.transform.position = lockTargetCenter.transform.position
                         + new Vector3(0f, 0f, Distance);
                 }
                 camera.transform.LookAt(lockTargetCenter.transform.position);
@@ -315,7 +312,6 @@ namespace PhotocaptureFromCamera
         }
     }
 
-
     /// <summary>
     /// This class is for making <see cref="Photocapture"/> fields editable by game developers in a pleasant way. 
     /// It does not need to be manually instantiated or attached to anything to be used.
@@ -396,7 +392,9 @@ namespace PhotocaptureFromCamera
     }
 
     /// <summary>
-    /// This class's SaveDirectory is overwritten by Photocapture. It does not need to be instantiated to be used.
+    /// This <see cref="SaveDirectory"/> is overwritten by <see cref="Photocapture.SaveDirectory"/> on image save.
+    /// It does not need to be instantiated or attached to anything to be used, all it does is make sure
+    /// transparency is saved. 
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
