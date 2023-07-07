@@ -24,6 +24,8 @@ namespace PhotocaptureFromCamera
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
     {
+        public const string CenterNamePostfixConvention = " Center";
+
         // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
         public string SaveDirectory;
         public string Filename;
@@ -34,6 +36,7 @@ namespace PhotocaptureFromCamera
         public FileType FileType = FileType.png;
 
         private Transform previousLockTarget;
+        private GameObject lockTargetCenter;
         public Transform LockTarget;
 
         public bool UseTargetAsFilename = false;
@@ -41,55 +44,43 @@ namespace PhotocaptureFromCamera
         public float Distance = 0f;
         public bool UseUnlitShader = false;
 
-        private bool cameraFocusedOnCenter = false;
-        public bool GetCameraFocusedOnCenter() => cameraFocusedOnCenter;
-        private void SetCameraFocusOnCenter(bool value, bool delayDestruction)
-        {
-            if (value)
-                CreateCenterObjectIfDoesntExist(LockTarget);
-            else
-                DestroyCenterObjectIfExists(LockTarget, delayDestruction);
-            cameraFocusedOnCenter = value;
-        }
-
-        // These are for showing a preview image.
         private RawImage previewImage;
         private Canvas canvas;
 
         private void OnValidate()
         {
-            // This is basically a hack to run logic whenever lockTarget changes. Simply using a property or custom 
-            // setter won't work, because they don't work nicely with with EditorGUILayout updates... (I think).
             // Maybe I could be doing this instead:
             // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
             {
-                DestroyCenterObjectIfExists(previousLockTarget, true);
-                bool previousTargetExisted = previousLockTarget != null;
-                if (previousTargetExisted)
-                    SetCameraFocusOnCenter(false, true);
+                UpdateLockTargetCenter();
+
+                void UpdateLockTargetCenter()
+                {
+                    DestroyCenterObjectIfExists(previousLockTarget, true);
+                    lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter, true);
+                }
 
                 bool newTargetIsNull = LockTarget == null;
                 if (newTargetIsNull)
                     ResetTargetDependentState();
-
-                previousLockTarget = LockTarget;
 
                 void ResetTargetDependentState()
                 {
                     UseTargetAsFilename = false;
                     Offset = Vector3.zero;
                     Distance = 0f;
-                    SetCameraFocusOnCenter(false, true);
                 }
+
+                previousLockTarget = LockTarget;
             }
         }
 
         private void OnEnable()
         {
-            if (cameraFocusedOnCenter)
-                CreateCenterObjectIfDoesntExist(LockTarget);
+            if (LockTarget != null)
+                lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter, false);
 
             CreatePreviewImageInfrastructure();
 
@@ -109,23 +100,13 @@ namespace PhotocaptureFromCamera
                 GameObject rawImageGO = new GameObject("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
-                // Use bottom right corner of canvas as anchor, and bottom right of image as pivot.
-                rawImageTransform.anchorMin = new Vector2(1f, 0f);
-                rawImageTransform.anchorMax = new Vector2(1f, 0f);
-                rawImageTransform.pivot = new Vector2(1f, 0f);
-                //rawImageTransform.anchoredPosition = Vector2.zero; // Adjust the distance from corner as desired.
-                rawImageTransform.sizeDelta = new Vector2(previewSize, previewSize);
+                SetLocation(rawImageTransform, previewSize);
                 previewImage = rawImageGO.AddComponent<RawImage>();
 
                 GameObject textGO = new GameObject("Photocapture Preview Text");
                 textGO.transform.SetParent(canvas.transform, false);
                 var textRectTransform = textGO.AddComponent<RectTransform>();
-                // Use bottom right corner of canvas as anchor, and bottom right of text as pivot.
-                textRectTransform.anchorMin = new Vector2(1f, 0f);
-                textRectTransform.anchorMax = new Vector2(1f, 0f);
-                textRectTransform.pivot = new Vector2(1f, 0f);
-                //textRectTransform.anchoredPosition = Vector2.zero; // Adjust the distance from corner as desired.
-                textRectTransform.sizeDelta = new Vector2(previewSize, previewSize);
+                SetLocation(textRectTransform, previewSize);
 
                 EditorApplication.delayCall += () =>
                 {
@@ -133,6 +114,14 @@ namespace PhotocaptureFromCamera
                     textComponent.fontSize = 24;
                     textComponent.text = "Photocapture Preview:";
                 };
+
+                static void SetLocation(RectTransform rectTransform, float size)
+                {
+                    rectTransform.anchorMin = Vector2.right;
+                    rectTransform.anchorMax = Vector2.right;
+                    rectTransform.pivot = Vector2.right;
+                    rectTransform.sizeDelta = size * Vector2.one;
+                }
             }
         }
 
@@ -168,23 +157,27 @@ namespace PhotocaptureFromCamera
                 return;
             }
 
-            if (LockTarget != null)
+            if (LockTarget != null && lockTargetCenter != null)
                 LockToAndOrbitTarget();
-
-            UpdatePreviewImage();
 
             void LockToAndOrbitTarget()
             {
-                Transform target = cameraFocusedOnCenter ? GameObject.Find(LockTarget.name + " Center").transform : LockTarget;
-
                 if (LockTarget.TryGetComponent<Renderer>(out var renderer))
-                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance + renderer.bounds.size.magnitude);
+                {
+                    camera.transform.position = lockTargetCenter.transform.position 
+                        + new Vector3(0f, 0f, Distance + renderer.bounds.size.magnitude);
+                }
                 else
-                    camera.transform.position = target.position + new Vector3(0f, 0f, Distance);
+                {
+                    camera.transform.position = lockTargetCenter.transform.position 
+                        + new Vector3(0f, 0f, Distance);
+                }
 
-                camera.transform.LookAt(target.position);
+                camera.transform.LookAt(lockTargetCenter.transform.position);
                 camera.transform.position += Offset;
             }
+
+            UpdatePreviewImage();
 
             void UpdatePreviewImage()
             {
@@ -196,9 +189,53 @@ namespace PhotocaptureFromCamera
                     targetsRenderer.sharedMaterial.shader = unlit;
                     previewImage.texture = GenerateImage(Camera.main, (int)PhotoResolution);
                     targetsRenderer.sharedMaterial.shader = original;
+
+                    static Shader GetUnlitShader()
+                    {
+                        string shaderName = "HDRP/UnLit";
+                        Shader shader = Shader.Find(shaderName);
+                        if (shader == null)
+                        {
+                            shaderName = "Universal Render Pipeline/Unlit";
+                            shader = Shader.Find(shaderName);
+                            if (shader == null)
+                            {
+                                shaderName = "Unlit/Texture";
+                                shader = Shader.Find(shaderName);
+                            }
+                        }
+                        return shader;
+                    }
                 }
                 else
                     previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
+
+                static Texture2D GenerateImage(Camera camera, int resolution)
+                {
+                    RenderTexture renderTexture = new(resolution, resolution, 32);
+                    RenderCameraToTexture(camera, renderTexture);
+                    Texture2D image = ReadPixelsToTexture(resolution);
+                    RenderCameraToTexture(camera, null);
+                    DestroyImmediate(renderTexture);
+                    return image;
+
+                    static Texture2D ReadPixelsToTexture(int resolution)
+                    {
+                        // Pixels are read from RenderTexture.active.
+                        var texture = new Texture2D(resolution, resolution);
+                        texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+                        texture.Apply();
+                        return texture;
+                    }
+
+                    static void RenderCameraToTexture(Camera camera, RenderTexture texture)
+                    {
+                        // If texture is null, it renders to Main Window.
+                        camera.targetTexture = texture;
+                        RenderTexture.active = texture;
+                        camera.Render();
+                    }
+                }
             }
         }
 
@@ -242,102 +279,50 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        private static Texture2D GenerateImage(Camera camera, int resolution)
+        private static GameObject CreateCenterObjectIfDoesntExist(Transform target, GameObject center, bool delayCreation)
         {
-            RenderTexture renderTexture = new(resolution, resolution, 32);
-            RenderCameraToTexture(camera, renderTexture);
-            Texture2D image = ReadPixelsToTexture(resolution);
-            RenderCameraToTexture(camera, null);
-            DestroyImmediate(renderTexture);
-            return image;
+            if (target == null)
+                return null;
 
-            static Texture2D ReadPixelsToTexture(int resolution)
+            if (target.TryGetComponent<MeshRenderer>(out var renderer))
             {
-                // Pixels are read from RenderTexture.active.
-                var texture = new Texture2D(resolution, resolution);
-                texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
-                texture.Apply();
-                return texture;
-            }
-
-            static void RenderCameraToTexture(Camera camera, RenderTexture texture)
-            {
-                // If texture is null, it renders to Main Window.
-                camera.targetTexture = texture;
-                RenderTexture.active = texture;
-                camera.Render();
-            }
-        }
-
-        private static Shader GetUnlitShader()
-        {
-            string shaderName = "HDRP/UnLit";
-            Shader shader = Shader.Find(shaderName);
-            if (shader == null)
-            {
-                shaderName = "Universal Render Pipeline/Unlit";
-                shader = Shader.Find(shaderName);
-                if (shader == null)
+                if (center == null || center.name != target.name + CenterNamePostfixConvention)
                 {
-                    shaderName = "Unlit/Texture";
-                    shader = Shader.Find(shaderName);
-                }
-            }
-            return shader;
-        }
+                    if (delayCreation)
+                        EditorApplication.delayCall += () => CreateNewCenterObject();
+                    else
+                        CreateNewCenterObject();
 
-        public void ToggleFocusBetweenPivotAndCenter()
-        {
-            if (LockTarget == null)
-            {
-                Debug.Log("No camera target... Center Toggle Focus failed...");
-                return;
-            }
-
-            if (!isActiveAndEnabled)
-            {
-                Debug.Log("ERROR: Component is disabled... Center Toggle Focus failed...");
-                return;
-            }
-
-            SetCameraFocusOnCenter(!cameraFocusedOnCenter, false);
-        }
-
-        private static void CreateCenterObjectIfDoesntExist(Transform target)
-        {
-            // SMELL: Doing a bunch of GameObject.Find instead of just having a field reference to a centerObject....
-            if (target != null)
-            {
-                if (target.TryGetComponent<MeshRenderer>(out var renderer))
-                {
-                    var centerObject = GameObject.Find(target.name + " Center");
-                    if (centerObject == null)
+                    void CreateNewCenterObject()
                     {
-                        centerObject = new GameObject(target.name + " Center");
-                        centerObject.transform.position = renderer.bounds.center;
-                        centerObject.transform.parent = target.transform;
+                        center = new GameObject(target.name + CenterNamePostfixConvention);
+                        center.transform.position = renderer.bounds.center;
+                        center.transform.parent = target.transform;
                     }
                 }
-                else
-                    Debug.Log("Target's MeshRenderer was null! Failed to create a \"Center Object\" to focus on...");
             }
+            else
+            {
+                Debug.Log("Target's MeshRenderer was null! Failed to create a \"Center Object\" to focus on...");
+                return null;
+            }
+            return center;
         }
 
         private static void DestroyCenterObjectIfExists(Transform target, bool delayDestruction)
         {
-            if (target != null)
-            {
-                var centerObject = GameObject.Find(target.name + " Center");
-                if (centerObject != null)
-                {
-                    if (delayDestruction)
-                        EditorApplication.delayCall += () => DestroyImmediate(centerObject);
-                    else
-                        DestroyImmediate(centerObject);
-                }
-            }
+            if (target == null)
+                return;
+
+            var center = GameObject.Find(target.name + CenterNamePostfixConvention);
+            if (center != null)
+                if (delayDestruction)
+                    EditorApplication.delayCall += () => DestroyImmediate(center);
+                else
+                    DestroyImmediate(center);
         }
     }
+
 
     /// <summary>
     /// This class is for making <see cref="Photocapture"/> fields editable by game developers in a pleasant way. 
@@ -398,7 +383,7 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
             EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
 
-            ShowInInspector(serializedObject, lockTarget, true, new GUIContent("Target", "The target the camera is set to focus and orbit around."));
+            EditorGUILayout.ObjectField(lockTarget, new GUIContent("Target", "The target the camera is set to focus and orbit around."));
 
             if (photoCapture.LockTarget != null)
             {
@@ -407,11 +392,7 @@ namespace PhotocaptureFromCamera
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
 
-                if (GUILayout.Button("Center Focus Toggle (Recommended)"))
-                    photoCapture.ToggleFocusBetweenPivotAndCenter();
-
-                EditorGUILayout.LabelField("Locked to: ",
-                    !photoCapture.GetCameraFocusedOnCenter() ? photoCapture.LockTarget.name : photoCapture.LockTarget.name + " Center");
+                EditorGUILayout.LabelField("Locked to: ", photoCapture.LockTarget.name + Photocapture.CenterNamePostfixConvention);
             }
             else
                 EditorGUILayout.LabelField("Locked to: ", "Nothing");
@@ -423,17 +404,6 @@ namespace PhotocaptureFromCamera
                 bool useTargetName = photoCapture.LockTarget != null && photoCapture.UseTargetAsFilename;
                 photoCapture.CapturePhoto(useTargetName ? photoCapture.LockTarget.name : photoCapture.Filename);
             }
-        }
-
-        // TODO: Maybe I should just be doing EditorGUILayout.ObjectField (lol).
-        private static void ShowInInspector(SerializedObject serializedObject, SerializedProperty property,
-            bool includeChildren = true, GUIContent label = null)
-        {
-            label ??= new GUIContent(property.displayName);
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(property, label, includeChildren);
-            if (EditorGUI.EndChangeCheck())
-                serializedObject.ApplyModifiedProperties();
         }
     }
 
