@@ -1,13 +1,9 @@
-﻿using Codice.Client.Common.GameUI;
-using System;
-using System.Collections;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using static ThumbCreator.Enumerators;
-using static UnityEngine.GraphicsBuffer;
 
 namespace PhotocaptureFromCamera
 {
@@ -115,11 +111,12 @@ namespace PhotocaptureFromCamera
                 GameObject rawImageGO = new("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
+                // Use bottom right corner of image as anchor.
                 rawImageTransform.anchorMin = new Vector2(1f, 0f);
                 rawImageTransform.anchorMax = new Vector2(1f, 0f);
                 rawImageTransform.pivot = new Vector2(1f, 0f);
-                rawImageTransform.anchoredPosition = new Vector2(-10f, 10f); // Adjust the position as desired
-                rawImageTransform.sizeDelta = new Vector2(500f, 500f); // Adjust the size as desired
+                rawImageTransform.anchoredPosition = new Vector2(-10f, 10f); // Adjust the position as desired.
+                rawImageTransform.sizeDelta = new Vector2(250f, 250f); // Adjust the size as desired.
                 previewImage = rawImageGO.AddComponent<RawImage>();
             }
         }
@@ -158,7 +155,7 @@ namespace PhotocaptureFromCamera
             if (LockTarget != null)
                 LockToAndOrbitTarget();
 
-            UpdateImagePreview();
+            UpdatePreviewImage();
 
             void LockToAndOrbitTarget()
             {
@@ -175,7 +172,7 @@ namespace PhotocaptureFromCamera
                 camera.transform.position += Offset;
             }
 
-            void UpdateImagePreview()
+            void UpdatePreviewImage()
             {
                 if (LockTarget != null && UseUnlitShader)
                 {
@@ -205,23 +202,10 @@ namespace PhotocaptureFromCamera
                 return;
             }
 
-            //Texture2D image;
-            //if (LockTarget != null && UseUnlitShader)
-            //{
-            //    Shader unlit = GetUnlitShader();
-            //    var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
-            //    Shader original = targetsRenderer.sharedMaterial.shader;
-            //    targetsRenderer.sharedMaterial.shader = unlit;
-            //    image = GenerateImage(Camera.main, (int)PhotoResolution);
-            //    targetsRenderer.sharedMaterial.shader = original;
-            //}
-            //else
-            //    image = GenerateImage(Camera.main, (int)PhotoResolution);
-
             SaveToFile(previewImage.texture, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
 
             static void SaveToFile(Texture texture, string path, string filename, FileType filetype,
-                bool overwriteFile, string postfixDelimiter)
+                bool overwriteFile, string numberingDelimiter)
             {
                 var texture2D = texture as Texture2D;
                 PhotoImporter.SaveDirectory = "Assets/" + path;
@@ -234,7 +218,7 @@ namespace PhotocaptureFromCamera
                     int counter = 1;
                     while (File.Exists(fullPath))
                     {
-                        fullPath = Path.Combine(assetsPath, filename + postfixDelimiter + counter + "." + filetype);
+                        fullPath = Path.Combine(assetsPath, filename + numberingDelimiter + counter + "." + filetype);
                         counter++;
                     }
                 }
@@ -246,12 +230,11 @@ namespace PhotocaptureFromCamera
 
         private static Texture2D GenerateImage(Camera camera, int resolution)
         {
-            var renderTexture = new RenderTexture(resolution, resolution, 32);
+            RenderTexture renderTexture = new(resolution, resolution, 32);
             RenderCameraToTexture(camera, renderTexture);
             Texture2D image = ReadPixelsToTexture(resolution);
             RenderCameraToTexture(camera, null);
             DestroyImmediate(renderTexture);
-
             return image;
 
             static Texture2D ReadPixelsToTexture(int resolution)
@@ -263,7 +246,7 @@ namespace PhotocaptureFromCamera
                 return texture;
             }
 
-            static void RenderCameraToTexture(Camera camera, RenderTexture texture) 
+            static void RenderCameraToTexture(Camera camera, RenderTexture texture)
             {
                 // If texture is null, it renders to Main Window.
                 camera.targetTexture = texture;
