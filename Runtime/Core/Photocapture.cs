@@ -104,16 +104,35 @@ namespace PhotocaptureFromCamera
                     canvasGO.AddComponent<CanvasScaler>();
                 }
 
-                GameObject rawImageGO = new("Photocapture Preview Image");
+                float previewSize = 300f;
+
+                GameObject rawImageGO = new GameObject("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
-                // Use bottom right corner of image as anchor.
+                // Use bottom right corner of canvas as anchor, and bottom right of image as pivot.
                 rawImageTransform.anchorMin = new Vector2(1f, 0f);
                 rawImageTransform.anchorMax = new Vector2(1f, 0f);
                 rawImageTransform.pivot = new Vector2(1f, 0f);
-                rawImageTransform.anchoredPosition = new Vector2(-10f, 10f); // Adjust the position as desired.
-                rawImageTransform.sizeDelta = new Vector2(250f, 250f); // Adjust the size as desired.
+                //rawImageTransform.anchoredPosition = Vector2.zero; // Adjust the distance from corner as desired.
+                rawImageTransform.sizeDelta = new Vector2(previewSize, previewSize);
                 previewImage = rawImageGO.AddComponent<RawImage>();
+
+                GameObject textGO = new GameObject("Photocapture Preview Text");
+                textGO.transform.SetParent(canvas.transform, false);
+                var textRectTransform = textGO.AddComponent<RectTransform>();
+                // Use bottom right corner of canvas as anchor, and bottom right of text as pivot.
+                textRectTransform.anchorMin = new Vector2(1f, 0f);
+                textRectTransform.anchorMax = new Vector2(1f, 0f);
+                textRectTransform.pivot = new Vector2(1f, 0f);
+                //textRectTransform.anchoredPosition = Vector2.zero; // Adjust the distance from corner as desired.
+                textRectTransform.sizeDelta = new Vector2(previewSize, previewSize);
+
+                EditorApplication.delayCall += () =>
+                {
+                    var textComponent = textGO.AddComponent<Text>();
+                    textComponent.fontSize = 24;
+                    textComponent.text = "Photocapture Preview:";
+                };
             }
         }
 
@@ -136,6 +155,7 @@ namespace PhotocaptureFromCamera
                         DestroyImmediate(canvas.gameObject);
                         canvas = null;
                     }
+
                 }
             }
         }
