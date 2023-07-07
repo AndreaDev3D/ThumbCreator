@@ -52,7 +52,7 @@ namespace PhotocaptureFromCamera
             // Maybe I could be doing this instead:
             // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
-            if (userSwitchedTargets)
+            if (userSwitchedTargets && isActiveAndEnabled)
             {
                 UpdateLockTargetCenter();
 
@@ -391,11 +391,7 @@ namespace PhotocaptureFromCamera
                 EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
-
-                EditorGUILayout.LabelField("Locked to: ", photoCapture.LockTarget.name + Photocapture.CenterNamePostfixConvention);
             }
-            else
-                EditorGUILayout.LabelField("Locked to: ", "Nothing");
 
             serializedObject.ApplyModifiedProperties();
 
