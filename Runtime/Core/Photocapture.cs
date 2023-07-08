@@ -9,14 +9,7 @@ namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, then click "Capture & Save Image". 
-    ///     /// 
-    /// Advanced Usage Tips:
-    /// - Consider setting up a new "photobooth" scene with manually placed background (or foreground) props.
-    /// - If you have a target, you can rotate it around to take photos from different angles.
-    /// - To get transparent backgrounds, while in an empty scene set Camera's ClearFlag to Color, then set color to black with max alpha.
-    /// - Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.
-    /// - Consider adjusting the Camera's FieldOfView to achieve the desired perspective.
-    /// </summary>    
+    /// </summary> 
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
     {
@@ -328,6 +321,8 @@ namespace PhotocaptureFromCamera
 
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
+
+        private bool showAdvanced = false;
         private SerializedProperty filenamePostfix;
         private SerializedProperty overwriteFile;
         private SerializedProperty numberingDelimiter;
@@ -368,17 +363,27 @@ namespace PhotocaptureFromCamera
             if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
 
-            EditorGUILayout.PropertyField(filenamePostfix, new GUIContent("Filename Postfix", "The postfix appended to the end of the filename, e.g., _icon, -icon, etc."));
+            showAdvanced = EditorGUILayout.Foldout(showAdvanced, "Advanced:", true);
+            if (showAdvanced)
+            {
+                EditorGUILayout.PropertyField(filenamePostfix, new GUIContent("Filename Postfix", "The postfix appended to the end of the filename, e.g., _icon, -icon, etc."));
+                EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
 
-            EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
+                if (!overwriteFile.boolValue)
+                    EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme."));
 
-            if (!overwriteFile.boolValue)
-                EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme."));
+                EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
+                EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
+            }
 
-            EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
-            EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
+            EditorGUILayout.Space();
 
-            EditorGUILayout.ObjectField(lockTarget, new GUIContent("Target", "The target the camera is set to focus and orbit around."));
+            GUIStyle sectionStyle = new(EditorStyles.helpBox);
+            sectionStyle.normal.background = Texture2D.grayTexture;
+            sectionStyle.margin = new RectOffset(10, 10, 5, 5);
+            EditorGUILayout.BeginVertical(sectionStyle);
+
+            EditorGUILayout.ObjectField(lockTarget, new GUIContent("Target", "The target the camera is set to focus on. Must have a MeshRenderer."));
 
             if (photoCapture.LockTarget != null)
             {
@@ -387,6 +392,8 @@ namespace PhotocaptureFromCamera
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
             }
+
+            EditorGUILayout.EndVertical();
 
             serializedObject.ApplyModifiedProperties();
 
