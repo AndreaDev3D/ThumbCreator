@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+// TODO: Target must be forced to have a meshrenderer
 // TODO: Only render the selected object, but add a checkbox for including the background.
 // TODO: Add a checkbox for rendering transparent.
 
@@ -22,15 +23,16 @@ namespace PhotocaptureFromCamera
         // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
         public string SaveDirectory;
         public string Filename;
+
         public string FilenamePostfix;
         public bool OverwriteFile = false;
         public string NumberingDelimiter;
         public Resolution PhotoResolution = Resolution.Res128;
         public FileType FileType = FileType.png;
 
-        private Transform previousLockTarget;
+        private MeshRenderer previousLockTarget;
         private GameObject lockTargetCenter;
-        public Transform LockTarget;
+        public MeshRenderer LockTarget;
 
         public bool UseTargetAsFilename = false;
         public Vector3 Offset = Vector3.zero;
@@ -271,7 +273,7 @@ namespace PhotocaptureFromCamera
             }
         }
 
-        private static GameObject CreateCenterObjectIfDoesntExist(Transform target, GameObject center)
+        private static GameObject CreateCenterObjectIfDoesntExist(MeshRenderer target, GameObject center)
         {
             if (target == null)
                 return null;
@@ -293,7 +295,7 @@ namespace PhotocaptureFromCamera
             return center;
         }
 
-        private static void DestroyCenterObjectIfExists(Transform target, bool delayDestruction)
+        private static void DestroyCenterObjectIfExists(MeshRenderer target, bool delayDestruction)
         {
             if (target == null)
                 return;
