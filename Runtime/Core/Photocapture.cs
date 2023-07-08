@@ -1,13 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
-// TODO: Only render the selected object, but add a checkbox for including the background.
 // TODO: Add a checkbox for rendering transparent.
 
 namespace PhotocaptureFromCamera
@@ -37,9 +34,10 @@ namespace PhotocaptureFromCamera
 
         public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
+        public bool UseUnlitShader = false;
         public Vector3 Offset = Vector3.zero;
         public float Distance = 0f;
-        public bool UseUnlitShader = false;
+        private bool transparentBackground;
 
         private RawImage previewImage;
         private Canvas canvas;
@@ -402,9 +400,9 @@ namespace PhotocaptureFromCamera
         private SerializedProperty lockTarget;
         private SerializedProperty onlyRenderTarget;
         private SerializedProperty useTargetAsFilename;
+        private SerializedProperty useUnlitShader;
         private SerializedProperty offset;
         private SerializedProperty distance;
-        private SerializedProperty useUnlitShader;
 
         private void OnEnable()
         {
@@ -459,9 +457,9 @@ namespace PhotocaptureFromCamera
             {
                 EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo."));
                 EditorGUILayout.PropertyField(useTargetAsFilename);
+                EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
                 EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
-                EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
             }
 
             EditorGUILayout.EndVertical();
