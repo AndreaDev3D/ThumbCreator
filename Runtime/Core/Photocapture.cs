@@ -5,6 +5,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+// TODO: Only render the selected object, but add a checkbox for including the background.
+// TODO: Add a checkbox for rendering transparent.
+
 namespace PhotocaptureFromCamera
 {
     /// <summary>
@@ -80,7 +83,7 @@ namespace PhotocaptureFromCamera
                 canvas = FindObjectOfType<Canvas>();
                 if (canvas == null)
                 {
-                    GameObject canvasGO = new("Photocapture Preview Canvas");
+                    GameObject canvasGO = new GameObject("Photocapture Preview Canvas");
                     canvas = canvasGO.AddComponent<Canvas>();
                     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                     canvasGO.AddComponent<CanvasScaler>();
@@ -91,13 +94,13 @@ namespace PhotocaptureFromCamera
                 GameObject rawImageGO = new GameObject("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
-                SetLocation(rawImageTransform, previewSize);
+                PlaceInCorner(rawImageTransform, previewSize);
                 previewImage = rawImageGO.AddComponent<RawImage>();
 
                 GameObject textGO = new GameObject("Photocapture Preview Text");
                 textGO.transform.SetParent(canvas.transform, false);
                 var textRectTransform = textGO.AddComponent<RectTransform>();
-                SetLocation(textRectTransform, previewSize);
+                PlaceInCorner(textRectTransform, previewSize);
 
                 EditorApplication.delayCall += () =>
                 {
@@ -106,7 +109,7 @@ namespace PhotocaptureFromCamera
                     textComponent.text = "Preview:";
                 };
 
-                static void SetLocation(RectTransform rectTransform, float size)
+                static void PlaceInCorner(RectTransform rectTransform, float size)
                 {
                     rectTransform.anchorMin = Vector2.right;
                     rectTransform.anchorMax = Vector2.right;
@@ -135,7 +138,6 @@ namespace PhotocaptureFromCamera
                         DestroyImmediate(canvas.gameObject);
                         canvas = null;
                     }
-
                 }
             }
         }
@@ -202,7 +204,7 @@ namespace PhotocaptureFromCamera
 
                 static Texture2D GenerateImage(Camera camera, int resolution)
                 {
-                    RenderTexture renderTexture = new(resolution, resolution, 32);
+                    RenderTexture renderTexture = new RenderTexture(resolution, resolution, 32);
                     RenderCameraToTexture(camera, renderTexture);
                     Texture2D image = ReadPixelsToTexture(resolution);
                     RenderCameraToTexture(camera, null);
@@ -314,9 +316,9 @@ namespace PhotocaptureFromCamera
     {
         private bool showInstructions = false;
         private const string instructions =
-            "- Set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
+            "- You may want to set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
             "- If you have a target, you can rotate it around to take photos from different angles.\n" +
-            "- Get a transparent background by (while in empty scene) setting the Camera's ClearFlag to Color, and then maximizing alpha.\n" +
+            "- You can get a transparent backgrounds by setting the Camera's ClearFlag to Color, and then maximizing alpha.\n" +
             "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n" +
             "- Adjust the Camera's FieldOfView to achieve the desired perspective.";
 
@@ -379,7 +381,7 @@ namespace PhotocaptureFromCamera
 
             EditorGUILayout.Space();
 
-            GUIStyle sectionStyle = new(EditorStyles.helpBox);
+            GUIStyle sectionStyle = new GUIStyle(EditorStyles.helpBox);
             sectionStyle.normal.background = Texture2D.grayTexture;
             sectionStyle.margin = new RectOffset(10, 10, 5, 5);
             EditorGUILayout.BeginVertical(sectionStyle);
