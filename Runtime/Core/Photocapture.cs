@@ -8,7 +8,8 @@ using UnityEngine.UI;
 namespace PhotocaptureFromCamera
 {
     /// <summary>
-    /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>, then click "Capture & Save Image". 
+    /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>,
+    /// then click "Capture & Save Image". 
     /// </summary> 
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -101,8 +102,8 @@ namespace PhotocaptureFromCamera
                 EditorApplication.delayCall += () =>
                 {
                     var textComponent = textGO.AddComponent<Text>();
-                    textComponent.fontSize = 24;
-                    textComponent.text = "Photocapture Preview:";
+                    textComponent.fontSize = 48;
+                    textComponent.text = "Preview:";
                 };
 
                 static void SetLocation(RectTransform rectTransform, float size)
@@ -313,11 +314,11 @@ namespace PhotocaptureFromCamera
     {
         private bool showInstructions = false;
         private const string instructions =
-            "- Consider setting up a new 'photobooth' scene with manually placed background (or foreground) props.\n" +
+            "- Set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
             "- If you have a target, you can rotate it around to take photos from different angles.\n" +
-            "- To get transparent backgrounds, while in an empty scene set Camera's ClearFlag to Color, then set color to black with max alpha.\n" +
+            "- Get a transparent background by (while in empty scene) setting the Camera's ClearFlag to Color, and then maximizing alpha.\n" +
             "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n" +
-            "- Consider adjusting the Camera's FieldOfView to achieve the desired perspective.";
+            "- Adjust the Camera's FieldOfView to achieve the desired perspective.";
 
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
@@ -370,7 +371,7 @@ namespace PhotocaptureFromCamera
                 EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
 
                 if (!overwriteFile.boolValue)
-                    EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme."));
+                    EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme, e.g. name, name_1, name_2, or name, name-1, name-2, etc."));
 
                 EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
                 EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
@@ -411,9 +412,8 @@ namespace PhotocaptureFromCamera
     }
 
     /// <summary>
-    /// This <see cref="SaveDirectory"/> is overwritten by <see cref="Photocapture.SaveDirectory"/> on image save.
-    /// It does not need to be instantiated or attached to anything to be used, all it does is make sure
-    /// transparency is saved. 
+    /// This class is for setting alpha to act as transparency for saved images. 
+    /// It does not need to be manually instantiated or attached to anything to be used.
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
