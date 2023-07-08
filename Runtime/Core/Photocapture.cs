@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
-// TODO: Target must be forced to have a meshrenderer
 // TODO: Only render the selected object, but add a checkbox for including the background.
 // TODO: Add a checkbox for rendering transparent.
 
@@ -34,6 +35,7 @@ namespace PhotocaptureFromCamera
         private GameObject lockTargetCenter;
         public MeshRenderer LockTarget;
 
+        public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
         public Vector3 Offset = Vector3.zero;
         public float Distance = 0f;
@@ -85,7 +87,7 @@ namespace PhotocaptureFromCamera
                 canvas = FindObjectOfType<Canvas>();
                 if (canvas == null)
                 {
-                    GameObject canvasGO = new GameObject("Photocapture Preview Canvas");
+                    var canvasGO = new GameObject("Photocapture Preview Canvas");
                     canvas = canvasGO.AddComponent<Canvas>();
                     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                     canvasGO.AddComponent<CanvasScaler>();
@@ -93,13 +95,13 @@ namespace PhotocaptureFromCamera
 
                 float previewSize = 300f;
 
-                GameObject rawImageGO = new GameObject("Photocapture Preview Image");
+                var rawImageGO = new GameObject("Photocapture Preview Image");
                 rawImageGO.transform.SetParent(canvas.transform, false);
                 var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
                 PlaceInCorner(rawImageTransform, previewSize);
                 previewImage = rawImageGO.AddComponent<RawImage>();
 
-                GameObject textGO = new GameObject("Photocapture Preview Text");
+                var textGO = new GameObject("Photocapture Preview Text");
                 textGO.transform.SetParent(canvas.transform, false);
                 var textRectTransform = textGO.AddComponent<RectTransform>();
                 PlaceInCorner(textRectTransform, previewSize);
@@ -171,10 +173,48 @@ namespace PhotocaptureFromCamera
                 camera.transform.position += Offset;
             }
 
+            string photoRenderLayerName = "Photo Render";
             UpdatePreviewImage();
 
             void UpdatePreviewImage()
             {
+                int? originalLayer = null;
+
+                if (LockTarget != null && OnlyRenderTarget)
+                    CullBackground();
+
+                void CullBackground()
+                {
+                    originalLayer = LockTarget.gameObject.layer;
+                    int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
+                    if (photoRenderLayer == -1)
+                        photoRenderLayer = CreateNewLayer(photoRenderLayerName);
+
+                    LockTarget.gameObject.layer = photoRenderLayer;
+                    int photoRenderLayerMask = 1 << photoRenderLayer;
+                    camera.cullingMask = photoRenderLayerMask;
+
+                    static int CreateNewLayer(string layerName)
+                    {
+                        var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                        SerializedProperty layers = tagManager.FindProperty("layers");
+
+                        for (int i = 8; i < layers.arraySize; i++)
+                        {
+                            SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                            if (layer.stringValue == "")
+                            {
+                                layer.stringValue = layerName;
+                                tagManager.ApplyModifiedProperties();
+                                return i;
+                            }
+                        }
+
+                        Debug.LogError("ERROR: All available layers are already used... please uncheck RenderTargetOnly...");
+                        return -1;
+                    }
+                }
+
                 if (LockTarget != null && UseUnlitShader)
                 {
                     Shader unlit = GetUnlitShader();
@@ -204,9 +244,17 @@ namespace PhotocaptureFromCamera
                 else
                     previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
 
+                if (LockTarget != null && OnlyRenderTarget)
+                {
+                    if (originalLayer.HasValue)
+                        LockTarget.gameObject.layer = originalLayer.Value;
+                    DestroyLayer(photoRenderLayerName);
+                    camera.cullingMask = ~0;
+                }
+
                 static Texture2D GenerateImage(Camera camera, int resolution)
                 {
-                    RenderTexture renderTexture = new RenderTexture(resolution, resolution, 32);
+                    var renderTexture = new RenderTexture(resolution, resolution, 32);
                     RenderCameraToTexture(camera, renderTexture);
                     Texture2D image = ReadPixelsToTexture(resolution);
                     RenderCameraToTexture(camera, null);
@@ -228,6 +276,23 @@ namespace PhotocaptureFromCamera
                         camera.targetTexture = texture;
                         RenderTexture.active = texture;
                         camera.Render();
+                    }
+                }
+
+                void DestroyLayer(string layerName)
+                {
+                    var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                    SerializedProperty layers = tagManager.FindProperty("layers");
+
+                    for (int i = 8; i < layers.arraySize; i++)
+                    {
+                        SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                        if (layer.stringValue == layerName)
+                        {
+                            layer.stringValue = "";
+                            tagManager.ApplyModifiedProperties();
+                            break;
+                        }
                     }
                 }
             }
@@ -335,8 +400,8 @@ namespace PhotocaptureFromCamera
         private SerializedProperty fileType;
 
         private SerializedProperty lockTarget;
+        private SerializedProperty onlyRenderTarget;
         private SerializedProperty useTargetAsFilename;
-
         private SerializedProperty offset;
         private SerializedProperty distance;
         private SerializedProperty useUnlitShader;
@@ -392,6 +457,7 @@ namespace PhotocaptureFromCamera
 
             if (photoCapture.LockTarget != null)
             {
+                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo."));
                 EditorGUILayout.PropertyField(useTargetAsFilename);
                 EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
