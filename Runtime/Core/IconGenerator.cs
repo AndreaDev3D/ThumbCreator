@@ -1,6 +1,5 @@
 ﻿#if UNITY_EDITOR
 using System;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -165,142 +164,138 @@ namespace LightweightIconGenerator
                 camera.transform.position += Offset;
             }
 
-            UpdatePreviewImage();
+            // Local variables for undoing temporary changes.
+            string photoRenderLayerName = "Photo Render";
+            CameraClearFlags? originalClearFlags = null;
+            Color? originalBackgroundColor = null;
+            int? originalLayer = null;
+            int? originalCullingMask = null;
+            Shader originalShader = null;
 
-            void UpdatePreviewImage()
+            if (hasLockTarget)
             {
-                // Maybe this local function is too big? It seems to have more than one responsbility...
-                string photoRenderLayerName = "Photo Render";
-                CameraClearFlags? originalClearFlags = null;
-                Color? originalBackgroundColor = null;
-                int? originalLayer = null;
-                int? originalCullingMask = null;
-                Shader originalShader = null;
-
-                if (hasLockTarget)
+                if (TransparentBackground)
                 {
-                    if (TransparentBackground)
-                    {
-                        originalClearFlags = camera.clearFlags;
-                        originalBackgroundColor = camera.backgroundColor;
-                        camera.clearFlags = CameraClearFlags.SolidColor;
-                        camera.backgroundColor =
-                            new Color(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b, 0);
-                    }
-                    if (OnlyRenderTarget)
-                    {
-                        originalLayer = LockTarget.gameObject.layer;
-                        originalCullingMask = camera.cullingMask;
-                        int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
-                        if (photoRenderLayer == -1)
-                            photoRenderLayer = CreateNewLayer(photoRenderLayerName);
-                        LockTarget.gameObject.layer = photoRenderLayer;
-                        int photoRenderLayerMask = 1 << photoRenderLayer;
-                        camera.cullingMask = photoRenderLayerMask;
-
-                        static int CreateNewLayer(string layerName)
-                        {
-                            var tagManager = new SerializedObject(AssetDatabase
-                                .LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-                            SerializedProperty layers = tagManager.FindProperty("layers");
-
-                            for (int i = 8; i < layers.arraySize; i++)
-                            {
-                                SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-                                if (layer.stringValue == "")
-                                {
-                                    layer.stringValue = layerName;
-                                    tagManager.ApplyModifiedProperties();
-                                    return i;
-                                }
-                            }
-
-                            Debug.LogError("ERROR: All available layers are already used... "
-                                + "please uncheck RenderTargetOnly...");
-                            return -1;
-                        }
-                    }
-                    if (UseUnlitShader)
-                    {
-                        Shader unlit = GetUnlitShader();
-                        var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
-                        originalShader = targetsRenderer.sharedMaterial.shader;
-                        targetsRenderer.sharedMaterial.shader = unlit;
-
-                        static Shader GetUnlitShader()
-                        {
-                            string shaderName = "HDRP/UnLit";
-                            Shader shader = Shader.Find(shaderName);
-                            if (shader == null)
-                            {
-                                shaderName = "Universal Render Pipeline/Unlit";
-                                shader = Shader.Find(shaderName);
-                                if (shader == null)
-                                {
-                                    shaderName = "Unlit/Texture";
-                                    shader = Shader.Find(shaderName);
-                                }
-                            }
-                            return shader;
-                        }
-                    }
+                    // Temporarily set camera clear fields.
+                    originalClearFlags = camera.clearFlags;
+                    originalBackgroundColor = camera.backgroundColor;
+                    camera.clearFlags = CameraClearFlags.SolidColor;
+                    camera.backgroundColor =
+                        new Color(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b, 0);
                 }
-
-                previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
-                static Texture2D GenerateImage(Camera camera, int resolution)
+                if (OnlyRenderTarget)
                 {
-                    var tempRenderTexture = new RenderTexture(resolution, resolution, 32);
-                    RenderCameraToTexture(camera, tempRenderTexture);
-                    Texture2D image = ReadPixelsToTexture(resolution);
-                    RenderCameraToTexture(camera, null); // Is it more logical for this line to be in ResetOriginalState()?
-                    DestroyImmediate(tempRenderTexture);
-                    return image;
+                    // Temporarily create a new layer and use it for the LockTarget and camera.cullingMask.
+                    originalLayer = LockTarget.gameObject.layer;
+                    originalCullingMask = camera.cullingMask;
+                    int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
+                    if (photoRenderLayer == -1)
+                        photoRenderLayer = CreateNewLayer(photoRenderLayerName);
+                    LockTarget.gameObject.layer = photoRenderLayer;
+                    int photoRenderLayerMask = 1 << photoRenderLayer;
+                    camera.cullingMask = photoRenderLayerMask;
 
-                    static Texture2D ReadPixelsToTexture(int resolution)
-                    {
-                        // Pixels are read from RenderTexture.active.
-                        var texture = new Texture2D(resolution, resolution);
-                        texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
-                        texture.Apply();
-                        return texture;
-                    }
-
-                    static void RenderCameraToTexture(Camera camera, RenderTexture texture)
-                    {
-                        // If texture is null, it renders to Main Window.
-                        camera.targetTexture = texture;
-                        RenderTexture.active = texture;
-                        camera.Render();
-                    }
-                }
-
-                if (hasLockTarget)
-                    ResetProjectState();
-                void ResetProjectState()
-                {
-                    // It's called "ResetProjectState" (and not "ResetCameraState") because this script adds 
-                    // a whole new layer, and updates LockTarget's sharedMaterial & layer values.
-                    camera.clearFlags = originalClearFlags ?? camera.clearFlags;
-                    camera.backgroundColor = originalBackgroundColor ?? camera.backgroundColor;
-                    LockTarget.gameObject.layer = originalLayer ?? LockTarget.gameObject.layer;
-                    DestroyLayer(photoRenderLayerName);
-                    camera.cullingMask = originalCullingMask ?? camera.cullingMask;
-                    LockTarget.sharedMaterial.shader = originalShader ?? LockTarget.sharedMaterial.shader;
-
-                    void DestroyLayer(string layerName)
+                    static int CreateNewLayer(string layerName)
                     {
                         var tagManager = new SerializedObject(AssetDatabase
                             .LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
                         SerializedProperty layers = tagManager.FindProperty("layers");
+
                         for (int i = 8; i < layers.arraySize; i++)
                         {
                             SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-                            if (layer.stringValue == layerName)
+                            if (layer.stringValue == "")
                             {
-                                layer.stringValue = "";
+                                layer.stringValue = layerName;
                                 tagManager.ApplyModifiedProperties();
-                                break;
+                                return i;
                             }
+                        }
+
+                        Debug.LogError("ERROR: All available layers are already used... "
+                            + "please uncheck RenderTargetOnly...");
+                        return -1;
+                    }
+                }
+                if (UseUnlitShader)
+                {
+                    // Temporarily switch the LockTarget's renderer.
+                    Shader unlit = GetUnlitShader();
+                    originalShader = LockTarget.sharedMaterial.shader;
+                    LockTarget.sharedMaterial.shader = unlit;
+
+                    static Shader GetUnlitShader()
+                    {
+                        string shaderName = "HDRP/UnLit";
+                        Shader shader = Shader.Find(shaderName);
+                        if (shader == null)
+                        {
+                            shaderName = "Universal Render Pipeline/Unlit";
+                            shader = Shader.Find(shaderName);
+                            if (shader == null)
+                            {
+                                shaderName = "Unlit/Texture";
+                                shader = Shader.Find(shaderName);
+                            }
+                        }
+                        return shader;
+                    }
+                }
+            }
+
+            previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
+            static Texture2D GenerateImage(Camera camera, int resolution)
+            {
+                var tempRenderTexture = new RenderTexture(resolution, resolution, 32);
+                RenderCameraToTexture(camera, tempRenderTexture);
+                Texture2D image = ReadPixelsToTexture(resolution);
+                RenderCameraToTexture(camera, null);
+                DestroyImmediate(tempRenderTexture);
+                return image;
+
+                static Texture2D ReadPixelsToTexture(int resolution)
+                {
+                    // Pixels are read from RenderTexture.active.
+                    var texture = new Texture2D(resolution, resolution);
+                    texture.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+                    texture.Apply();
+                    return texture;
+                }
+
+                static void RenderCameraToTexture(Camera camera, RenderTexture texture)
+                {
+                    // If texture is null, it renders to Main Window.
+                    camera.targetTexture = texture;
+                    RenderTexture.active = texture;
+                    camera.Render();
+                }
+            }
+
+            if (hasLockTarget)
+                UndoTemporaryChanges();
+
+            void UndoTemporaryChanges()
+            {
+                camera.clearFlags = originalClearFlags ?? camera.clearFlags;
+                camera.backgroundColor = originalBackgroundColor ?? camera.backgroundColor;
+                LockTarget.gameObject.layer = originalLayer ?? LockTarget.gameObject.layer;
+                DestroyLayer(photoRenderLayerName);
+                camera.cullingMask = originalCullingMask ?? camera.cullingMask;
+                LockTarget.sharedMaterial.shader = originalShader ?? LockTarget.sharedMaterial.shader;
+
+                void DestroyLayer(string layerName)
+                {
+                    var tagManager = new SerializedObject(AssetDatabase
+                        .LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                    SerializedProperty layers = tagManager.FindProperty("layers");
+                    for (int i = 8; i < layers.arraySize; i++)
+                    {
+                        SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                        if (layer.stringValue == layerName)
+                        {
+                            layer.stringValue = "";
+                            tagManager.ApplyModifiedProperties();
+                            break;
                         }
                     }
                 }
@@ -504,11 +499,11 @@ namespace LightweightIconGenerator
                     new GUIContent("Use Target as Filename", "If enabled, the target's name will be used as the " +
                     "Filename."));
                 EditorGUILayout.PropertyField(onlyRenderTarget,
-                    new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo. " +
+                    new GUIContent("Render Only Target", "If enabled, only the target will be rendered. " +
                     "Often combined with Transparent Background."));
                 EditorGUILayout.PropertyField(transparentBackground,
                     new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent " +
-                    "background. May need to enable 'Only Render Target' first."));
+                    "background. Often combined with 'Render Only Target'."));
                 EditorGUILayout.PropertyField(useUnlitShader,
                     new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader" +
                     " for the Target object. Scriptable Render Pipeline not supported."));
