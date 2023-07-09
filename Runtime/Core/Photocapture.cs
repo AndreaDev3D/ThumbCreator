@@ -1,10 +1,13 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.IO;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
+// TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot easier. 
+// TODO: State machine with two states: free camera & Target camera
 // TODO: Add a checkbox for rendering transparent.
 
 namespace PhotocaptureFromCamera
@@ -93,20 +96,20 @@ namespace PhotocaptureFromCamera
 
                 float previewSize = 300f;
 
-                var rawImageGO = new GameObject("Photocapture Preview Image");
-                rawImageGO.transform.SetParent(canvas.transform, false);
-                var rawImageTransform = rawImageGO.AddComponent<RectTransform>();
+                var rawImageGameObject = new GameObject("Photocapture Preview Image");
+                rawImageGameObject.transform.SetParent(canvas.transform, false);
+                var rawImageTransform = rawImageGameObject.AddComponent<RectTransform>();
                 PlaceInCorner(rawImageTransform, previewSize);
-                previewImage = rawImageGO.AddComponent<RawImage>();
+                previewImage = rawImageGameObject.AddComponent<RawImage>();
 
-                var textGO = new GameObject("Photocapture Preview Text");
-                textGO.transform.SetParent(canvas.transform, false);
-                var textRectTransform = textGO.AddComponent<RectTransform>();
+                var textGameObject = new GameObject("Photocapture Preview Text");
+                textGameObject.transform.SetParent(canvas.transform, false);
+                var textRectTransform = textGameObject.AddComponent<RectTransform>();
                 PlaceInCorner(textRectTransform, previewSize);
 
                 EditorApplication.delayCall += () =>
                 {
-                    var textComponent = textGO.AddComponent<Text>();
+                    var textComponent = textGameObject.AddComponent<Text>();
                     textComponent.fontSize = 48;
                     textComponent.text = "Preview:";
                 };
@@ -522,3 +525,4 @@ namespace PhotocaptureFromCamera
         jpg
     }
 }
+#endif
