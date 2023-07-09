@@ -14,7 +14,7 @@ namespace PhotocaptureFromCamera
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>,
-    /// then click "Capture & Save Image". 
+    /// then click "Save Image". 
     /// </summary> 
     [ExecuteInEditMode]
     public class Photocapture : MonoBehaviour
@@ -37,10 +37,10 @@ namespace PhotocaptureFromCamera
 
         public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
+        public bool TransparentBackground = false;
         public bool UseUnlitShader = false;
         public Vector3 Offset = Vector3.zero;
         public float Distance = 0f;
-        private bool transparentBackground;
 
         private RawImage previewImage;
         private Canvas canvas;
@@ -81,9 +81,9 @@ namespace PhotocaptureFromCamera
             if (LockTarget != null)
                 lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
 
-            CreatePreviewImageInfrastructure();
+            CreatePreviewImageGameObjectInfrastructure();
 
-            void CreatePreviewImageInfrastructure()
+            void CreatePreviewImageGameObjectInfrastructure()
             {
                 canvas = FindObjectOfType<Canvas>();
                 if (canvas == null)
@@ -127,9 +127,9 @@ namespace PhotocaptureFromCamera
         private void OnDisable()
         {
             DestroyCenterObjectIfExists(LockTarget, false);
-            DestroyPreviewImageInfrastructureIfExists();
+            DestroyPreviewImageGameObjectInfrastructure();
 
-            void DestroyPreviewImageInfrastructureIfExists()
+            void DestroyPreviewImageGameObjectInfrastructure()
             {
                 if (canvas != null)
                 {
@@ -179,43 +179,62 @@ namespace PhotocaptureFromCamera
 
             void UpdatePreviewImage()
             {
-                int? originalLayer = null;
+                CameraClearFlags? originalClearFlags = null; // Test this with Skybox & Background (make sure background transparency gets reset).
+                Color? originalBackgroundColor = null;
 
-                if (LockTarget != null && OnlyRenderTarget)
-                    CullBackground();
-
-                void CullBackground()
+                if (LockTarget != null && TransparentBackground)
                 {
-                    originalLayer = LockTarget.gameObject.layer;
-                    int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
-                    if (photoRenderLayer == -1)
-                        photoRenderLayer = CreateNewLayer(photoRenderLayerName);
+                    SetBackgroundTransparent();
 
-                    LockTarget.gameObject.layer = photoRenderLayer;
-                    int photoRenderLayerMask = 1 << photoRenderLayer;
-                    camera.cullingMask = photoRenderLayerMask;
-
-                    static int CreateNewLayer(string layerName)
+                    void SetBackgroundTransparent()
                     {
-                        var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-                        SerializedProperty layers = tagManager.FindProperty("layers");
-
-                        for (int i = 8; i < layers.arraySize; i++)
-                        {
-                            SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-                            if (layer.stringValue == "")
-                            {
-                                layer.stringValue = layerName;
-                                tagManager.ApplyModifiedProperties();
-                                return i;
-                            }
-                        }
-
-                        Debug.LogError("ERROR: All available layers are already used... please uncheck RenderTargetOnly...");
-                        return -1;
+                        originalClearFlags = camera.clearFlags;
+                        originalBackgroundColor = camera.backgroundColor;
+                        camera.clearFlags = CameraClearFlags.SolidColor;
+                        camera.backgroundColor = new Color(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b, 0);
                     }
                 }
 
+                int? originalLayer = null;
+
+                if (LockTarget != null && OnlyRenderTarget)
+                {
+                    CullBackground();
+
+                    void CullBackground()
+                    {
+                        originalLayer = LockTarget.gameObject.layer;
+                        int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
+                        if (photoRenderLayer == -1)
+                            photoRenderLayer = CreateNewLayer(photoRenderLayerName);
+
+                        LockTarget.gameObject.layer = photoRenderLayer;
+                        int photoRenderLayerMask = 1 << photoRenderLayer;
+                        camera.cullingMask = photoRenderLayerMask;
+
+                        static int CreateNewLayer(string layerName)
+                        {
+                            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                            SerializedProperty layers = tagManager.FindProperty("layers");
+
+                            for (int i = 8; i < layers.arraySize; i++)
+                            {
+                                SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                                if (layer.stringValue == "")
+                                {
+                                    layer.stringValue = layerName;
+                                    tagManager.ApplyModifiedProperties();
+                                    return i;
+                                }
+                            }
+
+                            Debug.LogError("ERROR: All available layers are already used... please uncheck RenderTargetOnly...");
+                            return -1;
+                        }
+                    }
+                }
+
+                // Whether condition is true or not, previewImage.texture is set.
                 if (LockTarget != null && UseUnlitShader)
                 {
                     Shader unlit = GetUnlitShader();
@@ -245,14 +264,6 @@ namespace PhotocaptureFromCamera
                 else
                     previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
 
-                if (LockTarget != null && OnlyRenderTarget)
-                {
-                    if (originalLayer.HasValue)
-                        LockTarget.gameObject.layer = originalLayer.Value;
-                    DestroyLayer(photoRenderLayerName);
-                    camera.cullingMask = ~0;
-                }
-
                 static Texture2D GenerateImage(Camera camera, int resolution)
                 {
                     var renderTexture = new RenderTexture(resolution, resolution, 32);
@@ -280,19 +291,37 @@ namespace PhotocaptureFromCamera
                     }
                 }
 
-                void DestroyLayer(string layerName)
+                if (LockTarget != null && TransparentBackground)
                 {
-                    var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-                    SerializedProperty layers = tagManager.FindProperty("layers");
-
-                    for (int i = 8; i < layers.arraySize; i++)
+                    if (originalClearFlags.HasValue && originalBackgroundColor.HasValue)
                     {
-                        SerializedProperty layer = layers.GetArrayElementAtIndex(i);
-                        if (layer.stringValue == layerName)
+                        camera.clearFlags = originalClearFlags.Value;
+                        camera.backgroundColor = originalBackgroundColor.Value;
+                    }
+                }
+
+                if (LockTarget != null && OnlyRenderTarget)
+                {
+                    // Reset to original layer, and destroy the temporary layer.
+                    if (originalLayer.HasValue)
+                        LockTarget.gameObject.layer = originalLayer.Value;
+                    DestroyLayer(photoRenderLayerName);
+                    camera.cullingMask = ~0;
+
+                    void DestroyLayer(string layerName)
+                    {
+                        var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                        SerializedProperty layers = tagManager.FindProperty("layers");
+
+                        for (int i = 8; i < layers.arraySize; i++)
                         {
-                            layer.stringValue = "";
-                            tagManager.ApplyModifiedProperties();
-                            break;
+                            SerializedProperty layer = layers.GetArrayElementAtIndex(i);
+                            if (layer.stringValue == layerName)
+                            {
+                                layer.stringValue = "";
+                                tagManager.ApplyModifiedProperties();
+                                break;
+                            }
                         }
                     }
                 }
@@ -401,8 +430,9 @@ namespace PhotocaptureFromCamera
         private SerializedProperty fileType;
 
         private SerializedProperty lockTarget;
-        private SerializedProperty onlyRenderTarget;
         private SerializedProperty useTargetAsFilename;
+        private SerializedProperty onlyRenderTarget;
+        private SerializedProperty transparentBackground;
         private SerializedProperty useUnlitShader;
         private SerializedProperty offset;
         private SerializedProperty distance;
@@ -458,8 +488,9 @@ namespace PhotocaptureFromCamera
 
             if (photoCapture.LockTarget != null)
             {
-                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo."));
                 EditorGUILayout.PropertyField(useTargetAsFilename);
+                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo."));
+                EditorGUILayout.PropertyField(transparentBackground, new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent background. May need to enable 'Only Render Target' first."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
                 EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
                 EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
@@ -469,7 +500,7 @@ namespace PhotocaptureFromCamera
 
             serializedObject.ApplyModifiedProperties();
 
-            if (GUILayout.Button("Capture & Save Image"))
+            if (GUILayout.Button("Save Image"))
             {
                 bool useTargetName = photoCapture.LockTarget != null && photoCapture.UseTargetAsFilename;
                 photoCapture.CapturePhoto(useTargetName ? photoCapture.LockTarget.name : photoCapture.Filename);
@@ -488,7 +519,7 @@ namespace PhotocaptureFromCamera
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
-        public static string SaveDirectory;
+        public static string SaveDirectory = "INITIALIZE_SAVE_DIRECTORY"; // Hack to prevent accidental re-import of entire project.
 
         private void OnPreprocessTexture()
         {
