@@ -55,7 +55,7 @@ namespace PhotocaptureFromCamera
 
                 void UpdateLockTargetCenter()
                 {
-                    DestroyCenterObjectIfExists(previousLockTarget, true);
+                    DestroyCenterObjectIfExists(previousLockTarget, lockTargetCenter, true);
                     EditorApplication.delayCall += () =>
                         lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
                 }
@@ -66,7 +66,6 @@ namespace PhotocaptureFromCamera
 
                 void ResetTargetDependentState()
                 {
-                    UseTargetAsFilename = false;
                     Offset = Vector3.zero;
                     Distance = 0f;
                 }
@@ -108,9 +107,12 @@ namespace PhotocaptureFromCamera
 
                 EditorApplication.delayCall += () =>
                 {
-                    var textComponent = textGameObject.AddComponent<Text>();
-                    textComponent.fontSize = 48;
-                    textComponent.text = "Preview:";
+                    if (textGameObject != null)
+                    {
+                        var textComponent = textGameObject.AddComponent<Text>();
+                        textComponent.fontSize = 48;
+                        textComponent.text = "Preview:";
+                    }
                 };
 
                 static void PlaceInCorner(RectTransform rectTransform, float size)
@@ -125,7 +127,7 @@ namespace PhotocaptureFromCamera
 
         private void OnDisable()
         {
-            DestroyCenterObjectIfExists(LockTarget, false);
+            DestroyCenterObjectIfExists(LockTarget, lockTargetCenter, false);
             DestroyPreviewImageGameObjectInfrastructure();
 
             void DestroyPreviewImageGameObjectInfrastructure()
@@ -392,17 +394,19 @@ namespace PhotocaptureFromCamera
             return center;
         }
 
-        private static void DestroyCenterObjectIfExists(MeshRenderer target, bool delayDestruction)
+        private static void DestroyCenterObjectIfExists(MeshRenderer target, GameObject center, bool delayDestruction)
         {
-            if (target == null)
+            if (target == null || center == null)
                 return;
 
-            var center = GameObject.Find(target.name + CenterNamePostfixConvention);
-            if (center != null)
+            if (center.name == target.name + CenterNamePostfixConvention)
+            {
                 if (delayDestruction)
                     EditorApplication.delayCall += () => DestroyImmediate(center);
                 else
                     DestroyImmediate(center);
+            }
+
         }
     }
 
