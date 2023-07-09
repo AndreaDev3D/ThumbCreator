@@ -351,7 +351,6 @@ namespace PhotocaptureFromCamera
             {
                 var texture2D = texture as Texture2D;
                 string assetsPath = Path.Combine("Assets", pathInAssetsFolder);
-                PhotoImporter.SaveDirectory = pathInAssetsFolder;
                 string fullPath = Path.Combine(assetsPath, filename + "." + filetype.ToString());
                 byte[] bytes = texture2D.EncodeToPNG();
                 Directory.CreateDirectory(assetsPath);
@@ -364,6 +363,7 @@ namespace PhotocaptureFromCamera
                         counter++;
                     }
                 }
+                PhotoImporter.FullSavePath = fullPath;
                 File.WriteAllBytes(fullPath, bytes);
                 Debug.Log(bytes.Length / 1024 + "Kb was saved as: " + fullPath);
                 AssetDatabase.Refresh();
@@ -418,7 +418,7 @@ namespace PhotocaptureFromCamera
             "- You may want to set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
             "- If you have a target, you can rotate it around to take photos from different angles.\n" +
             "- Adjust the Camera's FieldOfView to achieve the desired perspective.\n" +
-            "- For transparent icons, combine both OnlyRenderTarget and TransparentBackground.\n" +
+            "- For transparent icons, enable both OnlyRenderTarget and TransparentBackground.\n" +
             "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n";
 
         private SerializedProperty saveDirectory;
@@ -522,14 +522,11 @@ namespace PhotocaptureFromCamera
     public class PhotoImporter : AssetPostprocessor
     {
         // Initial value is hack to prevent accidental re-import of entire project. Overwritten on "Save Image" click.
-        public static string SaveDirectory = "DEFAULT_PHOTOCAPTURE_SAVE_LOCATION";
+        public static string FullSavePath = "DEFAULT/PHOTOCAPTURE/SAVE/PATH.png";
 
         private void OnPreprocessTexture()
         {
-            string assetFullPath = Path.GetDirectoryName(Path.GetFullPath(assetPath)).Replace('\\', '/');
-            string saveDirectoryFullPath = Path.Combine(Application.dataPath, SaveDirectory).Replace('\\', '/');
-            bool assetIsInSaveDirectory = assetFullPath == saveDirectoryFullPath;
-            if (assetIsInSaveDirectory)
+            if (assetPath.Replace('\\', '/') == FullSavePath.Replace('\\', '/'))
             {
                 var textureImporter = assetImporter as TextureImporter;
                 textureImporter.alphaIsTransparency = true;
