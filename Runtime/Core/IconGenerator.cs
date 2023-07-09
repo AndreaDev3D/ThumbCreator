@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot easier. 
-// TODO: State machine with two states: free camera & Target camera
+// TODO: State management via state machine with "Free" and "Target" states.
 
 namespace LightweightIconGenerator
 {
@@ -18,7 +18,6 @@ namespace LightweightIconGenerator
     [ExecuteInEditMode]
     public class IconGenerator : MonoBehaviour
     {
-
         // Must-have:
         public string SaveDirectory;
         public string Filename;
@@ -32,9 +31,6 @@ namespace LightweightIconGenerator
 
         // Target Mode:
         public MeshRenderer LockTarget;
-        private MeshRenderer previousLockTarget;
-        private GameObject lockTargetCenter;
-        public const string CenterNamePostfixConvention = " Center";
         public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
         public bool TransparentBackground = false;
@@ -42,31 +38,28 @@ namespace LightweightIconGenerator
         public Vector3 Offset = Vector3.zero;
         public float Distance = 0f;
 
-        // Preview Image:
+        // Target Mode (not serialized):
+        private MeshRenderer previousLockTarget;
+        private GameObject lockTargetCenter;
+        public const string CenterNamePostfixConvention = " Center";
+
+        // Preview Image (not serialized):
         private RawImage previewImage;
         private Canvas canvas;
 
+        // Stuff in OnValidate is a hack because I can't display properties nicely (setters won't get called).
+        // Maybe I should be just manually calling a property setter instead of doing all this crazy stuff...
         private void OnValidate()
         {
-            // This is a hack because I can't display properties nicely (setters won't get called). Maybe I could be doing this instead:
-            // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
             {
-                UpdateLockTargetCenter();
-
-                void UpdateLockTargetCenter()
-                {
-                    DestroyCenterObjectIfExists(previousLockTarget, lockTargetCenter, true);
-                    EditorApplication.delayCall += () =>
-                        lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
-                }
+                DestroyCenterObjectIfExists(previousLockTarget, lockTargetCenter, true);
+                EditorApplication.delayCall += () =>
+                    lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
 
                 bool newTargetIsNull = LockTarget == null;
                 if (newTargetIsNull)
-                    ResetTargetDependentState();
-
-                void ResetTargetDependentState()
                 {
                     Offset = Vector3.zero;
                     Distance = 0f;
@@ -78,12 +71,10 @@ namespace LightweightIconGenerator
 
         private void OnEnable()
         {
-            if (LockTarget != null)
-                lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
+            CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
+            CreateImagePreviewInfrastructure();
 
-            CreatePreviewImageGameObjectInfrastructure();
-
-            void CreatePreviewImageGameObjectInfrastructure()
+            void CreateImagePreviewInfrastructure()
             {
                 canvas = FindObjectOfType<Canvas>();
                 if (canvas == null)
@@ -130,9 +121,9 @@ namespace LightweightIconGenerator
         private void OnDisable()
         {
             DestroyCenterObjectIfExists(LockTarget, lockTargetCenter, false);
-            DestroyPreviewImageGameObjectInfrastructure();
+            DestroyImagePreviewInfrastructure();
 
-            void DestroyPreviewImageGameObjectInfrastructure()
+            void DestroyImagePreviewInfrastructure()
             {
                 if (canvas != null)
                 {
@@ -154,72 +145,59 @@ namespace LightweightIconGenerator
         {
             if (!TryGetComponent(out Camera camera))
             {
-                Debug.Log("ERROR: CameraPhotoCapture component is not attached to a Camera... please fix this...");
+                Debug.Log("ERROR: Component is not attached to a Camera... please fix this...");
                 return;
             }
 
-            if (LockTarget != null && lockTargetCenter != null)
-                LockToAndOrbitTarget();
+            bool hasLockTarget = LockTarget != null && lockTargetCenter != null;
 
-            void LockToAndOrbitTarget()
+            if (hasLockTarget)
+                LockToTarget();
+
+            void LockToTarget()
             {
-                if (LockTarget.TryGetComponent<Renderer>(out var renderer))
-                {
-                    camera.transform.position = lockTargetCenter.transform.position
-                        + new Vector3(0f, 0f, Distance + renderer.bounds.size.magnitude);
-                }
-                else
-                {
-                    camera.transform.position = lockTargetCenter.transform.position
-                        + new Vector3(0f, 0f, Distance);
-                }
+                camera.transform.position = lockTargetCenter.transform.position
+                    + new Vector3(0f, 0f, Distance + LockTarget.bounds.size.magnitude);
                 camera.transform.LookAt(lockTargetCenter.transform.position);
                 camera.transform.position += Offset;
             }
 
-            string photoRenderLayerName = "Photo Render";
             UpdatePreviewImage();
 
             void UpdatePreviewImage()
             {
-                CameraClearFlags? originalClearFlags = null; // Test this with Skybox & Background (make sure background transparency gets reset).
+                string photoRenderLayerName = "Photo Render";
+                CameraClearFlags? originalClearFlags = null;
                 Color? originalBackgroundColor = null;
+                int? originalLayer = null;
+                int? originalCullingMask = null;
+                Shader originalShader = null;
 
-                if (LockTarget != null && TransparentBackground)
+                if (hasLockTarget)
                 {
-                    SetBackgroundTransparent();
-
-                    void SetBackgroundTransparent()
+                    if (TransparentBackground)
                     {
                         originalClearFlags = camera.clearFlags;
                         originalBackgroundColor = camera.backgroundColor;
                         camera.clearFlags = CameraClearFlags.SolidColor;
-                        camera.backgroundColor = new Color(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b, 0);
+                        camera.backgroundColor =
+                            new Color(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b, 0);
                     }
-                }
-
-                int? originalLayer = null;
-                int? originalCullingMask = null;
-
-                if (LockTarget != null && OnlyRenderTarget)
-                {
-                    CullBackground();
-
-                    void CullBackground()
+                    if (OnlyRenderTarget)
                     {
                         originalLayer = LockTarget.gameObject.layer;
                         originalCullingMask = camera.cullingMask;
                         int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
                         if (photoRenderLayer == -1)
                             photoRenderLayer = CreateNewLayer(photoRenderLayerName);
-
                         LockTarget.gameObject.layer = photoRenderLayer;
                         int photoRenderLayerMask = 1 << photoRenderLayer;
                         camera.cullingMask = photoRenderLayerMask;
 
                         static int CreateNewLayer(string layerName)
                         {
-                            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                            var tagManager = new SerializedObject(AssetDatabase
+                                .LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
                             SerializedProperty layers = tagManager.FindProperty("layers");
 
                             for (int i = 8; i < layers.arraySize; i++)
@@ -233,49 +211,45 @@ namespace LightweightIconGenerator
                                 }
                             }
 
-                            Debug.LogError("ERROR: All available layers are already used... please uncheck RenderTargetOnly...");
+                            Debug.LogError("ERROR: All available layers are already used... "
+                                + "please uncheck RenderTargetOnly...");
                             return -1;
                         }
                     }
-                }
-
-                // Whether condition is true or not, previewImage.texture is set.
-                if (LockTarget != null && UseUnlitShader)
-                {
-                    Shader unlit = GetUnlitShader();
-                    var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
-                    Shader original = targetsRenderer.sharedMaterial.shader;
-                    targetsRenderer.sharedMaterial.shader = unlit;
-                    previewImage.texture = GenerateImage(Camera.main, (int)PhotoResolution);
-                    targetsRenderer.sharedMaterial.shader = original;
-
-                    static Shader GetUnlitShader()
+                    if (UseUnlitShader)
                     {
-                        string shaderName = "HDRP/UnLit";
-                        Shader shader = Shader.Find(shaderName);
-                        if (shader == null)
+                        Shader unlit = GetUnlitShader();
+                        var targetsRenderer = LockTarget.GetComponent<MeshRenderer>();
+                        originalShader = targetsRenderer.sharedMaterial.shader;
+                        targetsRenderer.sharedMaterial.shader = unlit;
+
+                        static Shader GetUnlitShader()
                         {
-                            shaderName = "Universal Render Pipeline/Unlit";
-                            shader = Shader.Find(shaderName);
+                            string shaderName = "HDRP/UnLit";
+                            Shader shader = Shader.Find(shaderName);
                             if (shader == null)
                             {
-                                shaderName = "Unlit/Texture";
+                                shaderName = "Universal Render Pipeline/Unlit";
                                 shader = Shader.Find(shaderName);
+                                if (shader == null)
+                                {
+                                    shaderName = "Unlit/Texture";
+                                    shader = Shader.Find(shaderName);
+                                }
                             }
+                            return shader;
                         }
-                        return shader;
                     }
                 }
-                else
-                    previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
 
+                previewImage.texture = GenerateImage(camera, (int)PhotoResolution);
                 static Texture2D GenerateImage(Camera camera, int resolution)
                 {
-                    var renderTexture = new RenderTexture(resolution, resolution, 32);
-                    RenderCameraToTexture(camera, renderTexture);
+                    var tempRenderTexture = new RenderTexture(resolution, resolution, 32);
+                    RenderCameraToTexture(camera, tempRenderTexture);
                     Texture2D image = ReadPixelsToTexture(resolution);
-                    RenderCameraToTexture(camera, null);
-                    DestroyImmediate(renderTexture);
+                    RenderCameraToTexture(camera, null); // Is it more logical for this line to be in ResetOriginalState()?
+                    DestroyImmediate(tempRenderTexture);
                     return image;
 
                     static Texture2D ReadPixelsToTexture(int resolution)
@@ -296,29 +270,23 @@ namespace LightweightIconGenerator
                     }
                 }
 
-                if (LockTarget != null && TransparentBackground)
+                ResetProjectState();
+                void ResetProjectState()
                 {
-                    if (originalClearFlags.HasValue && originalBackgroundColor.HasValue)
-                    {
-                        camera.clearFlags = originalClearFlags.Value;
-                        camera.backgroundColor = originalBackgroundColor.Value;
-                    }
-                }
-
-                if (LockTarget != null && OnlyRenderTarget)
-                {
-                    // Reset to original layer, destroy the temporary layer, and reset the cullingMask.
-                    if (originalLayer.HasValue)
-                        LockTarget.gameObject.layer = originalLayer.Value;
+                    // It's called "ResetProjectState" (and not "ResetCameraState") because this script adds 
+                    // a whole new layer, and updates LockTarget's sharedMaterial & layer values.
+                    camera.clearFlags = originalClearFlags ?? camera.clearFlags;
+                    camera.backgroundColor = originalBackgroundColor ?? camera.backgroundColor;
+                    LockTarget.gameObject.layer = originalLayer ?? LockTarget.gameObject.layer;
                     DestroyLayer(photoRenderLayerName);
-                    if (originalCullingMask.HasValue)
-                        camera.cullingMask = originalCullingMask.Value;
+                    camera.cullingMask = originalCullingMask ?? camera.cullingMask;
+                    LockTarget.sharedMaterial.shader = originalShader ?? LockTarget.sharedMaterial.shader;
 
                     void DestroyLayer(string layerName)
                     {
-                        var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+                        var tagManager = new SerializedObject(AssetDatabase
+                            .LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
                         SerializedProperty layers = tagManager.FindProperty("layers");
-
                         for (int i = 8; i < layers.arraySize; i++)
                         {
                             SerializedProperty layer = layers.GetArrayElementAtIndex(i);
@@ -348,7 +316,8 @@ namespace LightweightIconGenerator
                 return;
             }
 
-            SaveToFile(previewImage.texture, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
+            SaveToFile(previewImage.texture, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile,
+                NumberingDelimiter);
 
             static void SaveToFile(Texture texture, string pathInAssetsFolder, string filename, FileType filetype,
                 bool overwriteFile, string numberingDelimiter)
@@ -379,20 +348,13 @@ namespace LightweightIconGenerator
             if (target == null)
                 return null;
 
-            if (target.TryGetComponent<MeshRenderer>(out var renderer))
+            if (center == null || center.name != target.name + CenterNamePostfixConvention)
             {
-                if (center == null || center.name != target.name + CenterNamePostfixConvention)
-                {
-                    center = new GameObject(target.name + CenterNamePostfixConvention);
-                    center.transform.position = renderer.bounds.center;
-                    center.transform.parent = target.transform;
-                }
+                center = new GameObject(target.name + CenterNamePostfixConvention);
+                center.transform.position = target.bounds.center;
+                center.transform.parent = target.transform;
             }
-            else
-            {
-                Debug.Log("Target's MeshRenderer was null! Failed to create a \"Center Object\" to focus on...");
-                return null;
-            }
+
             return center;
         }
 
@@ -408,7 +370,6 @@ namespace LightweightIconGenerator
                 else
                     DestroyImmediate(center);
             }
-
         }
     }
 
@@ -423,7 +384,8 @@ namespace LightweightIconGenerator
             "- Attach this to a Camera in your scene.\n" +
             "- Choose a 'Filename' and 'SaveDirectory'.\n" +
             "- Click 'Save Image'.";
-        private const string warningMessage = "Disable or remove this component before building! \n(Otherwise, the preview canvas will be left in the build.)";
+        private const string warningMessage = "Disable or remove this component before building!\n" +
+            "(Otherwise, the preview canvas will be left in the build.)";
 
         private bool showUsageTips = false;
         private const string usageTips =
@@ -477,22 +439,33 @@ namespace LightweightIconGenerator
             var photoCapture = target as IconGenerator;
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
+            EditorGUILayout.PropertyField(saveDirectory,
+                new GUIContent("Save Directory", "The directory (relative to Assets folder) to save " +
+                "the captured images."));
 
             if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
-                EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
+                EditorGUILayout.PropertyField(filename,
+                    new GUIContent("Filename", "The name of the captured image file, not including extension."));
 
             showAdvanced = EditorGUILayout.Foldout(showAdvanced, "Advanced:", true);
             if (showAdvanced)
             {
-                EditorGUILayout.PropertyField(filenamePostfix, new GUIContent("Filename Postfix", "The postfix appended to the end of the filename, e.g., _icon, -icon, etc."));
-                EditorGUILayout.PropertyField(overwriteFile, new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the same name."));
+                EditorGUILayout.PropertyField(filenamePostfix,
+                    new GUIContent("Filename Postfix", "The postfix appended to the end of the filename, " +
+                    "e.g., _icon, -icon, etc."));
+                EditorGUILayout.PropertyField(overwriteFile,
+                    new GUIContent("Overwrite File", "If enabled, it overwrites the existing file with the " +
+                    "same name."));
 
                 if (!overwriteFile.boolValue)
-                    EditorGUILayout.PropertyField(numberingDelimiter, new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for numbering scheme, e.g. name, name_1, name_2, or name, name-1, name-2, etc."));
+                    EditorGUILayout.PropertyField(numberingDelimiter,
+                        new GUIContent("Numbering Delimiter", "The delimiter to append to the filename for " +
+                        "numbering scheme, e.g. name, name_1, name_2, or name, name-1, name-2, etc."));
 
-                EditorGUILayout.PropertyField(photoResolution, new GUIContent("Photo Resolution", "The resolution of the captured image."));
-                EditorGUILayout.PropertyField(fileType, new GUIContent("File Type", "The file format of the captured image."));
+                EditorGUILayout.PropertyField(photoResolution,
+                    new GUIContent("Photo Resolution", "The resolution of the captured image."));
+                EditorGUILayout.PropertyField(fileType,
+                    new GUIContent("File Type", "The file format of the captured image."));
             }
 
             EditorGUILayout.Space();
@@ -502,16 +475,27 @@ namespace LightweightIconGenerator
             sectionStyle.margin = new RectOffset(10, 10, 5, 5);
             EditorGUILayout.BeginVertical(sectionStyle);
 
-            EditorGUILayout.ObjectField(lockTarget, new GUIContent("Target", "The target the camera is set to focus on. Must have a MeshRenderer."));
+            EditorGUILayout.ObjectField(lockTarget,
+                new GUIContent("Target", "The target the camera is set to focus on. Must have a MeshRenderer."));
 
             if (photoCapture.LockTarget != null)
             {
-                EditorGUILayout.PropertyField(useTargetAsFilename, new GUIContent("Use Target as Filename", "If enabled, the target's name will be used as the Filename."));
-                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo. Often combined with Transparent Background."));
-                EditorGUILayout.PropertyField(transparentBackground, new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent background. May need to enable 'Only Render Target' first."));
-                EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
-                EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
-                EditorGUILayout.Slider(distance, 0, 2f, new GUIContent("Target Distance", "The distance the camera is away from the target."));
+                EditorGUILayout.PropertyField(useTargetAsFilename,
+                    new GUIContent("Use Target as Filename", "If enabled, the target's name will be used as the " +
+                    "Filename."));
+                EditorGUILayout.PropertyField(onlyRenderTarget,
+                    new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo. " +
+                    "Often combined with Transparent Background."));
+                EditorGUILayout.PropertyField(transparentBackground,
+                    new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent " +
+                    "background. May need to enable 'Only Render Target' first."));
+                EditorGUILayout.PropertyField(useUnlitShader,
+                    new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader" +
+                    " for the Target object. Scriptable Render Pipeline not supported."));
+                EditorGUILayout.PropertyField(offset,
+                    new GUIContent("Offset", "The amount that the camera is offset from the target."));
+                EditorGUILayout.Slider(distance, 0, 2f,
+                    new GUIContent("Target Distance", "The distance the camera is away from the target."));
             }
 
             EditorGUILayout.EndVertical();
@@ -537,8 +521,8 @@ namespace LightweightIconGenerator
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
-        // Initial value is hack to prevent accidental re-import of entire project. Overwritten on "Save Image" click.
-        public static string FullSavePath = "DEFAULT/PHOTOCAPTURE/SAVE/PATH.png";
+        // Initial value is hack to prevent re-import of entire project. Overwritten on "Save Image" click.
+        public static string FullSavePath = "DO/NOT/CHANGE/THIS!!.xyxz";
 
         private void OnPreprocessTexture()
         {
