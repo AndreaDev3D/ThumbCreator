@@ -302,7 +302,7 @@ namespace PhotocaptureFromCamera
 
                 if (LockTarget != null && OnlyRenderTarget)
                 {
-                    // Reset to original layer, and destroy the temporary layer.
+                    // Reset to original layer, and destroy the temporary layer, and reset the cullingMask.
                     if (originalLayer.HasValue)
                         LockTarget.gameObject.layer = originalLayer.Value;
                     DestroyLayer(photoRenderLayerName);
@@ -415,9 +415,9 @@ namespace PhotocaptureFromCamera
         private const string instructions =
             "- You may want to set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
             "- If you have a target, you can rotate it around to take photos from different angles.\n" +
-            "- You can get a transparent backgrounds by setting the Camera's ClearFlag to Color, and then maximizing alpha.\n" +
-            "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n" +
-            "- Adjust the Camera's FieldOfView to achieve the desired perspective.";
+            "- Adjust the Camera's FieldOfView to achieve the desired perspective.\n" +
+            "- For transparent icons, combine both OnlyRenderTarget and TransparentBackground.\n" +
+            "- Enable UseUnlitShader if you are generating icons for items and don't want to mess with lighting.\n";
 
         private SerializedProperty saveDirectory;
         private SerializedProperty filename;
@@ -459,7 +459,7 @@ namespace PhotocaptureFromCamera
             var photoCapture = target as Photocapture;
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
+            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images. Highly recommended that you have a dedicated folder, because a custom AssetPostprocessor is ran in that folder to overwrite transparencies."));
 
             if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
@@ -488,8 +488,8 @@ namespace PhotocaptureFromCamera
 
             if (photoCapture.LockTarget != null)
             {
-                EditorGUILayout.PropertyField(useTargetAsFilename);
-                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo."));
+                EditorGUILayout.PropertyField(useTargetAsFilename, new GUIContent("Use Target as Filename", "If enabled, the target's name will be used as the Filename."));
+                EditorGUILayout.PropertyField(onlyRenderTarget, new GUIContent("Only Render Target", "If enabled, only the target will be rendered during photo. Often combined with Transparent Background."));
                 EditorGUILayout.PropertyField(transparentBackground, new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent background. May need to enable 'Only Render Target' first."));
                 EditorGUILayout.PropertyField(useUnlitShader, new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit shader for the Target object. Scriptable Render Pipeline not supported."));
                 EditorGUILayout.PropertyField(offset, new GUIContent("Offset", "The amount that the camera is offset from the target."));
@@ -519,7 +519,8 @@ namespace PhotocaptureFromCamera
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
-        public static string SaveDirectory = "INITIALIZE_SAVE_DIRECTORY"; // Hack to prevent accidental re-import of entire project.
+        // Hack to prevent accidental re-import of entire project. Overwritten 
+        public static string SaveDirectory = "DEFAULT_PHOTOCAPTURE_SAVE_LOCATION"; 
 
         private void OnPreprocessTexture()
         {
