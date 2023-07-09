@@ -7,8 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-// TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot/Unreal easier. 
-// TODO: State management via state machine with "Free" and "Target" states.
+// TODO: State management via state machine with "Free" and "Target" states?
 
 namespace LightweightIconGenerator
 {
@@ -153,20 +152,21 @@ namespace LightweightIconGenerator
             bool hasLockTarget = LockTarget != null && lockTargetCenter != null;
 
             if (hasLockTarget)
-                LockToTarget();
-
-            void LockToTarget()
             {
-                camera.transform.position = lockTargetCenter.transform.position
-                    + new Vector3(0f, 0f, Distance + LockTarget.bounds.size.magnitude);
-                camera.transform.LookAt(lockTargetCenter.transform.position);
-                camera.transform.position += Offset;
+                LockToTarget();
+                void LockToTarget()
+                {
+                    camera.transform.position = lockTargetCenter.transform.position
+                        + new Vector3(0f, 0f, Distance + LockTarget.bounds.size.magnitude);
+                    camera.transform.LookAt(lockTargetCenter.transform.position);
+                    camera.transform.position += Offset;
+                }
             }
 
-            // Local variables for undoing temporary changes.
+            // Local variables for undoing temporary changes. They should only get assigned if needed.
             string photoRenderLayerName = "Photo Render";
             CameraClearFlags? originalClearFlags = null;
-            Color? originalBackgroundColor = null;
+            Color? originalBackgroundColor = null; 
             int? originalLayer = null;
             int? originalCullingMask = null;
             Shader originalShader = null;
@@ -270,17 +270,18 @@ namespace LightweightIconGenerator
                 }
             }
 
-            if (hasLockTarget)
-                UndoTemporaryChanges();
-
+            UndoTemporaryChanges();
             void UndoTemporaryChanges()
             {
                 camera.clearFlags = originalClearFlags ?? camera.clearFlags;
                 camera.backgroundColor = originalBackgroundColor ?? camera.backgroundColor;
-                LockTarget.gameObject.layer = originalLayer ?? LockTarget.gameObject.layer;
+                if (LockTarget != null)
+                {
+                    LockTarget.gameObject.layer = originalLayer ?? LockTarget.gameObject.layer;
+                    LockTarget.sharedMaterial.shader = originalShader ?? LockTarget.sharedMaterial.shader;
+                }
                 DestroyLayer(photoRenderLayerName);
                 camera.cullingMask = originalCullingMask ?? camera.cullingMask;
-                LockTarget.sharedMaterial.shader = originalShader ?? LockTarget.sharedMaterial.shader;
 
                 void DestroyLayer(string layerName)
                 {
@@ -394,6 +395,7 @@ namespace LightweightIconGenerator
     [CustomEditor(typeof(IconGenerator))]
     public class IconGeneratorEditor : Editor
     {
+        private bool showInstructions = true;
         private const string instructions = "Instructions:\n" +
             "- Attach this to a Camera in your scene.\n" +
             "- Choose a 'Filename' and 'SaveDirectory'.\n" +
@@ -449,8 +451,12 @@ namespace LightweightIconGenerator
             using (new EditorGUI.DisabledScope(true))
                 EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((MonoBehaviour)target), GetType(), false);
 
-            EditorGUILayout.HelpBox(instructions, MessageType.Info);
-            EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
+            showInstructions = EditorGUILayout.Foldout(showInstructions, "Instructions:", true);
+            if (showInstructions)
+            {
+                EditorGUILayout.HelpBox(instructions, MessageType.Info);
+                EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
+            }
 
             var photoCapture = target as IconGenerator;
             serializedObject.Update();
