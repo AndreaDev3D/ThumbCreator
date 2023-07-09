@@ -9,7 +9,6 @@ using UnityEngine.UI;
 
 // TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot/Unreal easier. 
 // TODO: State management via state machine with "Free" and "Target" states.
-// TODO: Display script in Inspector so can double click on to jump to it.
 
 namespace LightweightIconGenerator
 {
@@ -447,6 +446,8 @@ namespace LightweightIconGenerator
 
         public override void OnInspectorGUI()
         {
+            using (new EditorGUI.DisabledScope(true))
+                EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour((MonoBehaviour)target), GetType(), false);
 
             EditorGUILayout.HelpBox(instructions, MessageType.Info);
             EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
