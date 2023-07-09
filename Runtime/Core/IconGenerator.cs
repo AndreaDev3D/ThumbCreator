@@ -74,47 +74,6 @@ namespace LightweightIconGenerator
         }
     }
 
-    [CustomPropertyDrawer(typeof(LockTarget))]
-    public class LockTargetDrawer : PropertyDrawer
-    {
-        private const int PropertyCount = 8; // Number of properties in the LockTarget class
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            EditorGUI.BeginProperty(position, label, property);
-
-            float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-            float labelWidth = position.width * 0.4f;
-
-            Rect rect = new Rect(position.x, position.y, labelWidth, lineHeight);
-            SerializedProperty prop = property.Copy();
-
-            for (int i = 0; i < PropertyCount; i++)
-            {
-                EditorGUI.LabelField(rect, ObjectNames.NicifyVariableName(prop.name));
-                rect.x += labelWidth;
-
-                if (prop.name == "MeshRenderer" || (prop.name == "CenterGameObject" && prop.FindPropertyRelative("MeshRenderer").objectReferenceValue != null))
-                {
-                    EditorGUI.PropertyField(rect, prop, GUIContent.none);
-                    rect.y += lineHeight;
-                }
-
-                rect.x = position.x;
-                rect.width = labelWidth;
-                prop.NextVisible(true);
-            }
-
-            EditorGUI.EndProperty();
-        }
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
-        {
-            return EditorGUIUtility.singleLineHeight * (PropertyCount - 1) 
-                + EditorGUIUtility.standardVerticalSpacing * (PropertyCount - 2);
-        }
-    }
-
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>,
     /// then click "Save Image". 
