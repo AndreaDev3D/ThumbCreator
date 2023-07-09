@@ -8,7 +8,6 @@ using UnityEngine.UI;
 
 // TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot easier. 
 // TODO: State machine with two states: free camera & Target camera
-// TODO: Add a checkbox for rendering transparent.
 
 namespace PhotocaptureFromCamera
 {
@@ -196,6 +195,7 @@ namespace PhotocaptureFromCamera
                 }
 
                 int? originalLayer = null;
+                int? originalCullingMask = null;
 
                 if (LockTarget != null && OnlyRenderTarget)
                 {
@@ -204,6 +204,7 @@ namespace PhotocaptureFromCamera
                     void CullBackground()
                     {
                         originalLayer = LockTarget.gameObject.layer;
+                        originalCullingMask = camera.cullingMask;
                         int photoRenderLayer = LayerMask.NameToLayer(photoRenderLayerName);
                         if (photoRenderLayer == -1)
                             photoRenderLayer = CreateNewLayer(photoRenderLayerName);
@@ -302,11 +303,12 @@ namespace PhotocaptureFromCamera
 
                 if (LockTarget != null && OnlyRenderTarget)
                 {
-                    // Reset to original layer, and destroy the temporary layer, and reset the cullingMask.
+                    // Reset to original layer, destroy the temporary layer, and reset the cullingMask.
                     if (originalLayer.HasValue)
                         LockTarget.gameObject.layer = originalLayer.Value;
                     DestroyLayer(photoRenderLayerName);
-                    camera.cullingMask = ~0;
+                    if (originalCullingMask.HasValue)
+                        camera.cullingMask = originalCullingMask.Value;
 
                     void DestroyLayer(string layerName)
                     {
@@ -411,8 +413,8 @@ namespace PhotocaptureFromCamera
     [CustomEditor(typeof(Photocapture))]
     public class PhotocaptureEditor : Editor
     {
-        private bool showInstructions = false;
-        private const string instructions =
+        private bool showUsageTips = false;
+        private const string usageTips =
             "- You may want to set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
             "- If you have a target, you can rotate it around to take photos from different angles.\n" +
             "- Adjust the Camera's FieldOfView to achieve the desired perspective.\n" +
@@ -507,9 +509,9 @@ namespace PhotocaptureFromCamera
             }
 
             EditorGUILayout.Space();
-            showInstructions = EditorGUILayout.Foldout(showInstructions, "Usage Tips:", true);
-            if (showInstructions)
-                EditorGUILayout.HelpBox(instructions, MessageType.Info);
+            showUsageTips = EditorGUILayout.Foldout(showUsageTips, "Usage Tips:", true);
+            if (showUsageTips)
+                EditorGUILayout.HelpBox(usageTips, MessageType.Info);
         }
     }
 
