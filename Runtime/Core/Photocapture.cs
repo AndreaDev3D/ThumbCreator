@@ -346,12 +346,12 @@ namespace PhotocaptureFromCamera
 
             SaveToFile(previewImage.texture, SaveDirectory, filename + FilenamePostfix, FileType, OverwriteFile, NumberingDelimiter);
 
-            static void SaveToFile(Texture texture, string path, string filename, FileType filetype,
+            static void SaveToFile(Texture texture, string pathInAssetsFolder, string filename, FileType filetype,
                 bool overwriteFile, string numberingDelimiter)
             {
                 var texture2D = texture as Texture2D;
-                PhotoImporter.SaveDirectory = "Assets/" + path;
-                string assetsPath = Path.Combine("Assets", path);
+                string assetsPath = Path.Combine("Assets", pathInAssetsFolder);
+                PhotoImporter.SaveDirectory = pathInAssetsFolder;
                 string fullPath = Path.Combine(assetsPath, filename + "." + filetype.ToString());
                 byte[] bytes = texture2D.EncodeToPNG();
                 Directory.CreateDirectory(assetsPath);
@@ -521,12 +521,15 @@ namespace PhotocaptureFromCamera
     /// </summary>
     public class PhotoImporter : AssetPostprocessor
     {
-        // Hack to prevent accidental re-import of entire project. Overwritten 
-        public static string SaveDirectory = "DEFAULT_PHOTOCAPTURE_SAVE_LOCATION"; 
+        // Initial value is hack to prevent accidental re-import of entire project. Overwritten on "Save Image" click.
+        public static string SaveDirectory = "DEFAULT_PHOTOCAPTURE_SAVE_LOCATION";
 
         private void OnPreprocessTexture()
         {
-            if (assetPath.StartsWith(SaveDirectory))
+            string assetFullPath = Path.GetDirectoryName(Path.GetFullPath(assetPath)).Replace('\\', '/');
+            string saveDirectoryFullPath = Path.Combine(Application.dataPath, SaveDirectory).Replace('\\', '/');
+            bool assetIsInSaveDirectory = assetFullPath == saveDirectoryFullPath;
+            if (assetIsInSaveDirectory)
             {
                 var textureImporter = assetImporter as TextureImporter;
                 textureImporter.alphaIsTransparency = true;
