@@ -417,6 +417,12 @@ namespace PhotocaptureFromCamera
     [CustomEditor(typeof(Photocapture))]
     public class PhotocaptureEditor : Editor
     {
+        private const string instructions = "Instructions:\n" +
+            "- Attach this to a Camera in your scene.\n" +
+            "- Choose a 'Filename' and 'SaveDirectory'.\n" +
+            "- Click 'Save Image'.";
+        private const string warningMessage = "Disable or remove this component before building! \n(Otherwise, the preview canvas will be left in the build.)";
+
         private bool showUsageTips = false;
         private const string usageTips =
             "- You may want to set up a new 'photobooth' scene with manually placed background/foreground props.\n" +
@@ -462,10 +468,14 @@ namespace PhotocaptureFromCamera
 
         public override void OnInspectorGUI()
         {
+
+            EditorGUILayout.HelpBox(instructions, MessageType.Info);
+            EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
+
             var photoCapture = target as Photocapture;
             serializedObject.Update();
 
-            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images. Highly recommended that you have a dedicated folder, because a custom AssetPostprocessor is ran in that folder to overwrite transparencies."));
+            EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
 
             if (photoCapture.LockTarget == null || !useTargetAsFilename.boolValue)
                 EditorGUILayout.PropertyField(filename, new GUIContent("Filename", "The name of the captured image file, not including extension."));
