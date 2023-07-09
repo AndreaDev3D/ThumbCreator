@@ -9,31 +9,32 @@ using UnityEngine.UI;
 // TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot easier. 
 // TODO: State machine with two states: free camera & Target camera
 
-namespace PhotocaptureFromCamera
+namespace LightweightIconGenerator
 {
     /// <summary>
     /// Attach this to a Camera in your scene. Choose a <see cref="Filename"/> and <see cref="SaveDirectory"/>,
     /// then click "Save Image". 
     /// </summary> 
     [ExecuteInEditMode]
-    public class Photocapture : MonoBehaviour
+    public class IconGenerator : MonoBehaviour
     {
-        public const string CenterNamePostfixConvention = " Center";
 
-        // The fields are ordered as they appear in the Inspector (look at CameraPhotoCaptureEditor.OnInspectorGUI).
+        // Must-have:
         public string SaveDirectory;
         public string Filename;
 
+        // Advanced:
         public string FilenamePostfix;
         public bool OverwriteFile = false;
         public string NumberingDelimiter;
         public Resolution PhotoResolution = Resolution.Res128;
         public FileType FileType = FileType.png;
 
+        // Target Mode:
+        public MeshRenderer LockTarget;
         private MeshRenderer previousLockTarget;
         private GameObject lockTargetCenter;
-        public MeshRenderer LockTarget;
-
+        public const string CenterNamePostfixConvention = " Center";
         public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
         public bool TransparentBackground = false;
@@ -41,12 +42,13 @@ namespace PhotocaptureFromCamera
         public Vector3 Offset = Vector3.zero;
         public float Distance = 0f;
 
+        // Preview Image:
         private RawImage previewImage;
         private Canvas canvas;
 
         private void OnValidate()
         {
-            // Maybe I could be doing this instead:
+            // This is a hack because I can't display properties nicely (setters won't get called). Maybe I could be doing this instead:
             // https://stackoverflow.com/questions/37958136/unity-c-how-script-know-when-public-variablenot-property-changed
             bool userSwitchedTargets = LockTarget != previousLockTarget;
             if (userSwitchedTargets)
@@ -411,11 +413,11 @@ namespace PhotocaptureFromCamera
     }
 
     /// <summary>
-    /// This class is for making <see cref="Photocapture"/> fields editable by game developers in a pleasant way. 
+    /// This class is for making <see cref="IconGenerator"/> fields editable by game developers in a pleasant way. 
     /// It does not need to be manually instantiated or attached to anything to be used.
     /// </summary>
-    [CustomEditor(typeof(Photocapture))]
-    public class PhotocaptureEditor : Editor
+    [CustomEditor(typeof(IconGenerator))]
+    public class IconGeneratorEditor : Editor
     {
         private const string instructions = "Instructions:\n" +
             "- Attach this to a Camera in your scene.\n" +
@@ -455,11 +457,11 @@ namespace PhotocaptureFromCamera
 
             void AssignFieldsAccordingToName()
             {
-                string[] fieldNames = Array.ConvertAll(typeof(Photocapture).GetFields(), field => field.Name);
+                string[] fieldNames = Array.ConvertAll(typeof(IconGenerator).GetFields(), field => field.Name);
                 foreach (var fieldName in fieldNames)
                 {
                     string fieldNameCamelCase = char.ToLower(fieldName[0]) + fieldName.Substring(1);
-                    FieldInfo fieldInfo = typeof(PhotocaptureEditor).GetField(fieldNameCamelCase,
+                    FieldInfo fieldInfo = typeof(IconGeneratorEditor).GetField(fieldNameCamelCase,
                         bindingAttr: BindingFlags.NonPublic | BindingFlags.Instance);
                     fieldInfo?.SetValue(this, serializedObject.FindProperty(fieldName));
                 }
@@ -472,7 +474,7 @@ namespace PhotocaptureFromCamera
             EditorGUILayout.HelpBox(instructions, MessageType.Info);
             EditorGUILayout.HelpBox(warningMessage, MessageType.Warning);
 
-            var photoCapture = target as Photocapture;
+            var photoCapture = target as IconGenerator;
             serializedObject.Update();
 
             EditorGUILayout.PropertyField(saveDirectory, new GUIContent("Save Directory", "The directory (relative to Assets folder) to save the captured images."));
@@ -549,7 +551,7 @@ namespace PhotocaptureFromCamera
     }
 
     /// <summary>
-    /// The supported resolutions that <see cref="Photocapture"/> supports for image generation.
+    /// The supported resolutions that <see cref="IconGenerator"/> supports for image generation.
     /// </summary>
     public enum Resolution : short
     {
@@ -565,7 +567,7 @@ namespace PhotocaptureFromCamera
     }
 
     /// <summary>
-    /// The supported filetype (extensions) that <see cref="Photocapture"/> supports for image generation.
+    /// The supported filetype (extensions) that <see cref="IconGenerator"/> supports for image generation.
     /// </summary>
     public enum FileType : short
     {
