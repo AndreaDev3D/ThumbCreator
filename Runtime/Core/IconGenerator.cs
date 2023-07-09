@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -14,8 +13,6 @@ namespace LightweightIconGenerator
     {
         private MeshRenderer previousMeshRenderer;
         public MeshRenderer MeshRenderer;
-        public const string CenterNamePostfixConvention = " Center";
-        public GameObject CenterGameObject;
         public bool OnlyRenderTarget = false;
         public bool UseTargetAsFilename = false;
         public bool TransparentBackground = false;
@@ -34,42 +31,7 @@ namespace LightweightIconGenerator
                     Offset = Vector3.zero;
                     Distance = 0f;
                 }
-                DestroyCenter(previousMeshRenderer);
-                CreateNewCenter();
                 previousMeshRenderer = MeshRenderer;
-            }
-        }
-
-        public void CreateNewCenter()
-        {
-            if (MeshRenderer == null)
-                return;
-
-            if (CenterGameObject == null || CenterGameObject.name != MeshRenderer.name + CenterNamePostfixConvention)
-            {
-                CenterGameObject = GameObject.Find(MeshRenderer.name + CenterNamePostfixConvention);
-                if (CenterGameObject == null)
-                {
-                    CenterGameObject = new GameObject(MeshRenderer.name + CenterNamePostfixConvention);
-                    CenterGameObject.transform.position = MeshRenderer.bounds.center;
-                    CenterGameObject.transform.parent = MeshRenderer.transform;
-                }
-            }
-        }
-
-        public void DestroyCenter(MeshRenderer target)
-        {
-            if (target == null || CenterGameObject == null)
-                return;
-
-            if (CenterGameObject.name == target.name + CenterNamePostfixConvention)
-            {
-                var objectsToDestroy = UnityEngine.Object.FindObjectsOfType<GameObject>()
-                    .Where(gameObject => gameObject.name == CenterGameObject.name)
-                    .ToArray();
-
-                foreach (var gameObject in objectsToDestroy)
-                    UnityEngine.Object.DestroyImmediate(gameObject);
             }
         }
     }
@@ -105,7 +67,6 @@ namespace LightweightIconGenerator
             if (_lockTarget == null)
                 _lockTarget = new LockTarget();
 
-            _lockTarget.CreateNewCenter();
             CreateImagePreviewInfrastructure();
 
             void CreateImagePreviewInfrastructure()
@@ -154,7 +115,6 @@ namespace LightweightIconGenerator
 
         private void OnDisable()
         {
-            _lockTarget.DestroyCenter(_lockTarget.MeshRenderer);
             DestroyImagePreviewInfrastructure();
 
             void DestroyImagePreviewInfrastructure()
@@ -183,16 +143,16 @@ namespace LightweightIconGenerator
                 return;
             }
 
-            bool hasLockTarget = _lockTarget.MeshRenderer != null && _lockTarget.CenterGameObject != null;
+            bool hasLockTarget = _lockTarget.MeshRenderer != null;
 
             if (hasLockTarget)
             {
                 LockToTarget();
                 void LockToTarget()
                 {
-                    camera.transform.position = _lockTarget.CenterGameObject.transform.position
+                    camera.transform.position = _lockTarget.MeshRenderer.bounds.center
                         + new Vector3(0f, 0f, _lockTarget.Distance + _lockTarget.MeshRenderer.bounds.size.magnitude + 0.06f * camera.nearClipPlane);
-                    camera.transform.LookAt(_lockTarget.CenterGameObject.transform.position);
+                    camera.transform.LookAt(_lockTarget.MeshRenderer.bounds.center);
                     camera.transform.position += _lockTarget.Offset;
                 }
             }
@@ -480,7 +440,7 @@ namespace LightweightIconGenerator
 
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-            EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("MeshRenderer"), 
+            EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("MeshRenderer"),
                 new GUIContent("Target", "The target the camera is set to focus on. Must have a MeshRenderer."));
 
             if (iconGenerator.GetLockTarget().MeshRenderer != null)
@@ -489,18 +449,18 @@ namespace LightweightIconGenerator
                 EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("UseTargetAsFilename"),
                     new GUIContent("Use Target As Filename", "If enabled, the target's name will be as " +
                     "the Filename"));
-                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("OnlyRenderTarget"), 
+                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("OnlyRenderTarget"),
                     new GUIContent("Render Only Target", "If enabled, only the target will be rendered. " +
                     "Often combined with Transparent Background."));
                 EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("TransparentBackground"),
                     new GUIContent("Transparent Background", "If enabled, the saved image will have a transparent " +
                     "background. Often combined with 'Render Only Target"));
-                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("UseUnlitShader"), 
+                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("UseUnlitShader"),
                     new GUIContent("Use Unlit Shader", "If enabled, the saved image will use the Unlit Shader for the " +
                     "target. Scriptable Render Pipeline is not supported"));
-                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("Offset"), 
+                EditorGUILayout.PropertyField(lockTarget.FindPropertyRelative("Offset"),
                     new GUIContent("Offset", "The amount that the camera is offset from the target."));
-                EditorGUILayout.Slider(lockTarget.FindPropertyRelative("Distance"), 0, 2f,  
+                EditorGUILayout.Slider(lockTarget.FindPropertyRelative("Distance"), 0, 2f,
                     new GUIContent("Distance", "The distance the camera is away from the target."));
             }
 
