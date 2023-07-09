@@ -1,13 +1,16 @@
 ﻿#if UNITY_EDITOR
 using System;
+using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-// TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot easier. 
+// TODO: Have this use the least amount of Unity stuff as possible. Then can ported to Godot/Unreal easier. 
 // TODO: State management via state machine with "Free" and "Target" states.
+// TODO: Display script in Inspector so can double click on to jump to it.
 
 namespace LightweightIconGenerator
 {
@@ -71,7 +74,7 @@ namespace LightweightIconGenerator
 
         private void OnEnable()
         {
-            CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
+            lockTargetCenter = CreateCenterObjectIfDoesntExist(LockTarget, lockTargetCenter);
             CreateImagePreviewInfrastructure();
 
             void CreateImagePreviewInfrastructure()
@@ -166,6 +169,7 @@ namespace LightweightIconGenerator
 
             void UpdatePreviewImage()
             {
+                // Maybe this local function is too big? It seems to have more than one responsbility...
                 string photoRenderLayerName = "Photo Render";
                 CameraClearFlags? originalClearFlags = null;
                 Color? originalBackgroundColor = null;
@@ -270,7 +274,8 @@ namespace LightweightIconGenerator
                     }
                 }
 
-                ResetProjectState();
+                if (hasLockTarget)
+                    ResetProjectState();
                 void ResetProjectState()
                 {
                     // It's called "ResetProjectState" (and not "ResetCameraState") because this script adds 
@@ -343,6 +348,7 @@ namespace LightweightIconGenerator
             }
         }
 
+        // Usage: Assign lockTarget to this (perhaps this shouldn't be static... or maybe I can use out keyword...)
         private static GameObject CreateCenterObjectIfDoesntExist(MeshRenderer target, GameObject center)
         {
             if (target == null)
@@ -350,9 +356,13 @@ namespace LightweightIconGenerator
 
             if (center == null || center.name != target.name + CenterNamePostfixConvention)
             {
-                center = new GameObject(target.name + CenterNamePostfixConvention);
-                center.transform.position = target.bounds.center;
-                center.transform.parent = target.transform;
+                center = GameObject.Find(target.name + CenterNamePostfixConvention);
+                if (center == null)
+                {
+                    center = new GameObject(target.name + CenterNamePostfixConvention);
+                    center.transform.position = target.bounds.center;
+                    center.transform.parent = target.transform;
+                }
             }
 
             return center;
@@ -365,10 +375,20 @@ namespace LightweightIconGenerator
 
             if (center.name == target.name + CenterNamePostfixConvention)
             {
+                GameObject[] objectsToDestroy = FindObjectsOfType<GameObject>()
+                    .Where(obj => obj.name == center.name)
+                    .ToArray();
+
                 if (delayDestruction)
-                    EditorApplication.delayCall += () => DestroyImmediate(center);
+                {
+                    foreach (var gameObject in objectsToDestroy)
+                        EditorApplication.delayCall += () => DestroyImmediate(gameObject);
+                }
                 else
-                    DestroyImmediate(center);
+                {
+                    foreach (var gameObject in objectsToDestroy)
+                        DestroyImmediate(gameObject);
+                }
             }
         }
     }
