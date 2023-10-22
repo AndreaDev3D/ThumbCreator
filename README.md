@@ -26,6 +26,7 @@ https://user-images.githubusercontent.com/22279134/193661684-d55d9a37-a2ce-4860-
 <!-- INSTALLATION -->
 ## Installation
 Installation is very easy as this come as unity package.
+Note: 1. Temporary not working, try method 2
 
 1. Install with Packages Manager > add package from git URL  
    ```sh
